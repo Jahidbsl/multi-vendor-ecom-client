@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeSlash } from "@gravity-ui/icons";
 import {
   Button,
@@ -11,6 +12,8 @@ import {
   Label,
   TextField,
 } from "@heroui/react";
+import { toast } from "react-toastify";
+import { authClient } from "@/lib/auth-client";
 
 // Inline Google SVG Icon component
 function GoogleIcon() {
@@ -37,27 +40,68 @@ function GoogleIcon() {
 }
 
 export function LoginPage() {
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const onSubmit = (e) => {
+  // Email & Password Sign In Handler
+  const onSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const data = {};
 
-    formData.forEach((value, key) => {
-      data[key] = value.toString();
-    });
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
 
-    alert(`Form submitted with:\n${JSON.stringify(data, null, 2)}`);
+    await authClient.signIn.email(
+      {
+        email,
+        password,
+        callbackURL: "/dashboard",
+      },
+      {
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onSuccess: () => {
+          setIsLoading(false);
+          toast.success("Signed in successfully!");
+          router.push("/dashboard");
+        },
+        onError: (ctx) => {
+          setIsLoading(false);
+          toast.error(ctx.error.message || "Failed to sign in. Please check your credentials.");
+        },
+      }
+    );
   };
 
-  const handleGoogleLogin = () => {
-    alert("Triggering Google Login flow...");
+  // Google Social Sign In Handler
+  const handleGoogleLogin = async () => {
+    await authClient.signIn.social(
+      {
+        provider: "google",
+        callbackURL: "/dashboard",
+      },
+      {
+        onRequest: () => {
+          setIsGoogleLoading(true);
+        },
+        onError: (ctx) => {
+          setIsGoogleLoading(false);
+          toast.error(ctx.error.message || "Google sign-in failed.");
+        },
+      }
+    );
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Form className="flex w-full max-w-md flex-col gap-4 rounded-xl border p-6 shadow-sm" onSubmit={onSubmit}>
+      <Form
+        className="flex w-full max-w-md flex-col gap-4 rounded-xl border p-6 shadow-sm"
+        onSubmit={onSubmit}
+      >
         <h2 className="text-2xl font-bold text-center">Welcome Back</h2>
 
         {/* Google Sign-In Button */}
@@ -65,9 +109,11 @@ export function LoginPage() {
           type="button"
           variant="secondary"
           className="flex w-full items-center justify-center gap-2"
+          isLoading={isGoogleLoading}
+          isDisabled={isLoading || isGoogleLoading}
           onPress={handleGoogleLogin}
         >
-          <GoogleIcon />
+          {!isGoogleLoading && <GoogleIcon />}
           Sign in with Google
         </Button>
 
@@ -134,9 +180,14 @@ export function LoginPage() {
 
         {/* Submit Actions */}
         <div className="pt-2">
-          <Button className="w-full" type="submit">
+          <Button
+            className="w-full flex items-center justify-center gap-2"
+            type="submit"
+            isLoading={isLoading}
+            isDisabled={isLoading || isGoogleLoading}
+          >
             Sign In
-            <ArrowRight />
+            {!isLoading && <ArrowRight />}
           </Button>
         </div>
 
@@ -144,7 +195,7 @@ export function LoginPage() {
         <p className="mt-2 text-center text-sm text-gray-600">
           Don't have an account?{" "}
           <Link
-            href="/signup"
+            href="/auth/signup"
             className="font-semibold text-blue-600 hover:underline"
           >
             Create account

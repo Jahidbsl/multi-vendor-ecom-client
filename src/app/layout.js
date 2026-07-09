@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
+import { Navbar } from "@/components/shered/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -11,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-//setup for SEO and metadata 
+//setup for SEO and metadata
 
 export const metadata = {
   // ১. Title Configuration
@@ -21,7 +23,8 @@ export const metadata = {
   },
 
   // ২. Meta Description & Keywords
-  description: "Discover a seamless multi-vendor shopping experience with top brands, best deals, and secure checkout. Shop trending fashion, electronics, and daily essentials.",
+  description:
+    "Discover a seamless multi-vendor shopping experience with top brands, best deals, and secure checkout. Shop trending fashion, electronics, and daily essentials.",
   keywords: [
     "e-commerce",
     "multi-vendor marketplace",
@@ -47,7 +50,8 @@ export const metadata = {
   // ৪. OpenGraph Meta (Social Media Sharing)
   openGraph: {
     title: `${process.env.NEXT_PUBLIC_APP_NAME || "Your Brand"} - Best Multi-Vendor Online Marketplace`,
-    description: "Shop from thousands of trusted vendors. Exclusive discounts, fast delivery, and secure payments.",
+    description:
+      "Shop from thousands of trusted vendors. Exclusive discounts, fast delivery, and secure payments.",
     url: process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com",
     siteName: process.env.NEXT_PUBLIC_APP_NAME || "Your Brand",
     images: [
@@ -67,7 +71,9 @@ export const metadata = {
     card: "summary_large_image",
     title: process.env.NEXT_PUBLIC_APP_NAME || "Your Brand",
     description: "Shop quality products from top vendors at unbeatable prices.",
-    images: [`${process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com"}/og-image.jpg`],
+    images: [
+      `${process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com"}/og-image.jpg`,
+    ],
   },
 
   // ৬. Canonical URL (Duplicate Content SEO Issue রোধ করতে)
@@ -80,9 +86,15 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, Eye, EyeSlash } from "@gravity-ui/icons";
 import {
   Button,
@@ -12,28 +13,74 @@ import {
   Label,
   TextField,
 } from "@heroui/react";
+import { toast } from "react-toastify";
+import { authClient } from "@/lib/auth-client";
 
 export function RegisterPage() {
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
   const [password, setPassword] = useState("");
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const data = {};
 
-    formData.forEach((value, key) => {
-      data[key] = value.toString();
-    });
+    const name = formData.get("name")?.toString();
+    const email = formData.get("email")?.toString();
+    const imageUrl = formData.get("imageUrl")?.toString();
+    const password = formData.get("password")?.toString();
 
-    alert(`Form submitted with:\n${JSON.stringify(data, null, 2)}`);
+    // Trigger Better Auth Signup
+    await authClient.signUp.email(
+      {
+        email,
+        password,
+        name,
+        image: imageUrl || undefined,
+        callbackURL: "/dashboard",
+      },
+      {
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onSuccess: () => {
+          setIsLoading(false);
+          toast.success("Account created successfully!");
+          router.push("/dashboard");
+        },
+        onError: (ctx) => {
+          setIsLoading(false);
+          toast.error(ctx.error.message || "Failed to create account");
+        },
+      },
+    );
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Form className="flex w-full max-w-md flex-col gap-4 rounded-xl border p-6 shadow-sm" onSubmit={onSubmit}>
+      <Form
+        className="flex w-full max-w-md flex-col gap-4 rounded-xl border p-6 shadow-sm"
+        onSubmit={onSubmit}
+      >
         <h2 className="text-2xl font-bold text-center">Create an Account</h2>
+
+        {/* Full Name Field */}
+        <TextField
+          isRequired
+          name="name"
+          type="text"
+          validate={(value) => (!value ? "Full Name is required" : null)}
+        >
+          <Label>Full Name</Label>
+          <InputGroup>
+            <InputGroup.Input placeholder="John Doe" />
+          </InputGroup>
+          <FieldError />
+        </TextField>
 
         {/* Email Field */}
         <TextField
@@ -56,11 +103,10 @@ export function RegisterPage() {
 
         {/* Image URL Field */}
         <TextField
-          isRequired
           name="imageUrl"
           type="url"
           validate={(value) => {
-            if (!value) return "Image URL is required";
+            if (!value) return null; // Optional field
             try {
               new URL(value);
               return null;
@@ -69,11 +115,13 @@ export function RegisterPage() {
             }
           }}
         >
-          <Label>Profile Image URL</Label>
+          <Label>Profile Image URL (Optional)</Label>
           <InputGroup>
             <InputGroup.Input placeholder="https://example.com/avatar.jpg" />
           </InputGroup>
-          <Description>Enter a direct link to your avatar or profile image</Description>
+          <Description>
+            Enter a direct link to your avatar or profile image
+          </Description>
           <FieldError />
         </TextField>
 
@@ -105,7 +153,9 @@ export function RegisterPage() {
             <InputGroup.Suffix className="pr-0">
               <Button
                 isIconOnly
-                aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                aria-label={
+                  isPasswordVisible ? "Hide password" : "Show password"
+                }
                 size="sm"
                 variant="ghost"
                 onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -166,11 +216,16 @@ export function RegisterPage() {
 
         {/* Form Actions */}
         <div className="flex gap-2 pt-2">
-          <Button className="flex-1" type="submit">
-            <Check />
+          <Button
+            className="flex-1"
+            type="submit"
+            isLoading={isLoading}
+            isDisabled={isLoading}
+          >
+            {!isLoading && <Check />}
             Register
           </Button>
-          <Button type="reset" variant="secondary">
+          <Button type="reset" variant="secondary" isDisabled={isLoading}>
             Reset
           </Button>
         </div>
@@ -179,7 +234,7 @@ export function RegisterPage() {
         <p className="mt-2 text-center text-sm text-gray-600">
           Already have an account?{" "}
           <Link
-            href="/login"
+            href="/auth/signin"
             className="font-semibold text-blue-600 hover:underline"
           >
             Sign in
