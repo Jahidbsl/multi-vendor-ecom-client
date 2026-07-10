@@ -6,6 +6,7 @@ This project is built using modern web development technologies:
 - **UI Component Library:** [HeroUI](https://www.heroui.com/)
 - **Icons:** [@gravity-ui/icons](https://gravity-ui.com/icons) & [React Icons](https://react-icons.github.io/react-icons/)
 - **Notifications:** [React Toastify](https://fkhadra.github.io/react-toastify/)
+-** Lottefile**
 - **Authentication:** [Better Auth](https://www.better-auth.com/)
 
 ---
