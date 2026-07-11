@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Boxes,
   Truck,
+  UserRoundPlus,
 } from "lucide-react";
 
 export const ADMIN_LINKS = [
@@ -26,13 +27,29 @@ export const ADMIN_LINKS = [
     group: "Overview",
     items: [
       { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
-      { label: "Analytics", href: "/dashboard/admin/analytics", icon: BarChart3 },
+      {
+        label: "Analytics",
+        href: "/dashboard/admin/analytics",
+        icon: BarChart3,
+      },
     ],
   },
   {
     group: "Marketplace",
     items: [
-      { label: "Vendors", href: "/dashboard/admin/vendors", icon: Store, badge: "6" },
+      {
+        label: "Vendors",
+        href: "/dashboard/admin/vendors",
+        icon: Store,
+        badge: "6",
+      },
+      {
+        label: "Vendors +",
+        href: "/dashboard/admin/vendors-requests",
+        icon: UserRoundPlus,
+        badge: "6",
+      },
+
       { label: "Products", href: "/dashboard/admin/products", icon: Package },
       { label: "Orders", href: "/dashboard/admin/orders", icon: ShoppingCart },
       { label: "Categories", href: "/dashboard/admin/categories", icon: Tags },
@@ -50,7 +67,11 @@ export const ADMIN_LINKS = [
     group: "System",
     items: [
       { label: "Reports", href: "/dashboard/admin/reports", icon: FileText },
-      { label: "Moderation", href: "/dashboard/admin/moderation", icon: ShieldCheck },
+      {
+        label: "Moderation",
+        href: "/dashboard/admin/moderation",
+        icon: ShieldCheck,
+      },
       { label: "Settings", href: "/dashboard/admin/settings", icon: Settings },
     ],
   },
@@ -61,14 +82,23 @@ export const VENDOR_LINKS = [
     group: "Overview",
     items: [
       { label: "Dashboard", href: "/dashboard/vendor", icon: LayoutDashboard },
-      { label: "Analytics", href: "/dashboard/vendor/analytics", icon: BarChart3 },
+      {
+        label: "Analytics",
+        href: "/dashboard/vendor/analytics",
+        icon: BarChart3,
+      },
     ],
   },
   {
     group: "Store",
     items: [
       { label: "Products", href: "/dashboard/vendor/products", icon: Boxes },
-      { label: "Orders", href: "/dashboard/vendor/orders", icon: ShoppingCart, badge: "3" },
+      {
+        label: "Orders",
+        href: "/dashboard/vendor/orders",
+        icon: ShoppingCart,
+        badge: "3",
+      },
       { label: "Shipping", href: "/dashboard/vendor/shipping", icon: Truck },
       { label: "Reviews", href: "/dashboard/vendor/reviews", icon: Star },
     ],
@@ -77,12 +107,18 @@ export const VENDOR_LINKS = [
     group: "Business",
     items: [
       { label: "Earnings", href: "/dashboard/vendor/earnings", icon: Wallet },
-      { label: "Messages", href: "/dashboard/vendor/messages", icon: MessageSquare },
+      {
+        label: "Messages",
+        href: "/dashboard/vendor/messages",
+        icon: MessageSquare,
+      },
     ],
   },
   {
     group: "Store settings",
-    items: [{ label: "Settings", href: "/dashboard/vendor/settings", icon: Settings }],
+    items: [
+      { label: "Settings", href: "/dashboard/vendor/settings", icon: Settings },
+    ],
   },
 ];
 

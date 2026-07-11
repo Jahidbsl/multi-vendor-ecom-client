@@ -1,7 +1,14 @@
 "use server";
 
-import { serverMutation } from "../core/server";
+import { serverMutation, serverPatch } from "../core/server";
 
 export const submitApplicationForVendor = async (vendorData) => {
   return serverMutation("/api/vendor-request", vendorData);
 };
+
+
+
+export const AdminUpdateVendorRequestStatus = async (id, status) => {
+  return serverPatch(`/api/vendor-requests/${id}/status`, { status });
+
+}

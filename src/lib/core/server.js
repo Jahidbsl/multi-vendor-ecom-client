@@ -46,3 +46,62 @@ export const serverMutation = async (path, data) => {
 
   return JSON.parse(text);
 };
+
+
+// Server Patch Helper
+export const serverPatch = async (path, data) => {
+  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${path}`;
+
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const text = await res.text();
+
+  console.log("URL:", url);
+  console.log("Status:", res.status);
+  console.log("Content-Type:", res.headers.get("content-type"));
+  console.log("Body:", text);
+
+  if (!res.headers.get("content-type")?.includes("application/json")) {
+    throw new Error(`Expected JSON but got:\n${text}`);
+  }
+
+  return JSON.parse(text);
+};
+
+// Server Delete Helper
+export const serverDelete = async (path, data) => {
+  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${path}`;
+
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    // Optional: Only attach body if data is provided
+    ...(data && { body: JSON.stringify(data) }),
+  });
+
+  const text = await res.text();
+
+  console.log("URL:", url);
+  console.log("Status:", res.status);
+  console.log("Content-Type:", res.headers.get("content-type"));
+  console.log("Body:", text);
+
+  // Handle 204 No Content (DELETE requests often return status 204 without body)
+  if (res.status === 204 || !text) {
+    return { success: true };
+  }
+
+  if (!res.headers.get("content-type")?.includes("application/json")) {
+    throw new Error(`Expected JSON but got:\n${text}`);
+  }
+
+  return JSON.parse(text);
+};
