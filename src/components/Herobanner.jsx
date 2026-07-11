@@ -138,7 +138,7 @@ export function HeroBanner() {
                 <LuArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
-                href="/sell"
+                href="/vendor/apply"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-[#0A0A0A]/15 dark:border-white/20 px-6 py-3 text-sm font-semibold text-[#0A0A0A] dark:text-[#FAF7F2] transition-all hover:border-[#B98A3D] hover:text-[#B98A3D] hover:-translate-y-0.5"
               >
                 Become a vendor

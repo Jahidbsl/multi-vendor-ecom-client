@@ -22,7 +22,7 @@ const SHOP_LINKS = [
 ];
 
 const VENDOR_LINKS = [
-  { label: "Become a vendor", href: "/sell" },
+  { label: "Become a vendor", href: "/vendor/apply" },
   { label: "Vendor dashboard", href: "/vendor/dashboard" },
   { label: "Seller fees", href: "/sell/fees" },
   { label: "Vendor success stories", href: "/sell/stories" },

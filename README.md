@@ -29,3 +29,6 @@ When registering for an account, your password must meet the following validatio
 | `PASSWORD` | ❌ | Missing a number |
 | `Password123` | ✅ | Meets all criteria |
 | `MySecurePass2026!` | ✅ | Meets all criteria |
+
+
+-- create admin with better auth Plugin

@@ -71,7 +71,7 @@ export function Navbar() {
             <span>independent vendors selling here</span>
           </div>
           <div className="flex items-center gap-5">
-            <Link href="/sell" className="hover:text-white transition-colors">
+            <Link href="/vendor/apply" className="hover:text-white transition-colors">
               Become a vendor
             </Link>
             <Link href="/orders/track" className="hover:text-white transition-colors">
