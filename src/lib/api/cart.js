@@ -1,0 +1,45 @@
+"use server";
+
+import { serverFetch } from "../core/server";
+
+/**
+ * @param {string} userId 
+ * @returns {Promise<{success: boolean, data?: Array, message?: string}>}
+ */
+export async function getCartItems(userId) {
+  if (!userId) {
+    return {
+      success: false,
+      data: [],
+      message: "User ID is required",
+    };
+  }
+
+  try {
+    const response = await serverFetch(`/api/cart/${userId}`, {
+      method: "GET",
+      cache: "no-store", 
+    });
+
+    if (response?.success) {
+      return {
+        success: true,
+        data: response.data || [],
+        message: "Cart fetched successfully",
+      };
+    }
+
+    return {
+      success: false,
+      data: [],
+      message: response?.message || "Failed to fetch cart items",
+    };
+  } catch (error) {
+    console.error("Error in getCartItems Server Action:", error);
+    return {
+      success: false,
+      data: [],
+      message: error.message || "An error occurred while fetching cart",
+    };
+  }
+}

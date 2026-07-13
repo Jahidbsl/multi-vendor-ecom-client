@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Check } from "@gravity-ui/icons";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Check, Clock, ShieldCheck, Shield, ArrowRight, FaceFun } from "@gravity-ui/icons";
 import {
   Button,
   FieldError,
@@ -15,6 +16,9 @@ import {
 import { toast } from "react-toastify";
 import { authClient } from "@/lib/auth-client";
 import { submitApplicationForVendor } from "@/lib/actions/vendors";
+import { checkVendorRequestStatus } from "@/lib/api/vendors";
+
+
 const categories = [
   { label: "Fashion", value: "fashion" },
   { label: "Home & Living", value: "home_living" },
@@ -26,14 +30,34 @@ const categories = [
 
 export function BecomeVendorRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [existingRequest, setExistingRequest] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const { data: session } = authClient.useSession();
 
-  const handleCategoryChange = (keys) => {
-    const currentKey = Array.from(keys)[0];
-    setSelectedCategory(currentKey?.toString() || "");
-  };
+useEffect(() => {
+  async function checkVendorStatus() {
+    if (!session?.user?.id) {
+      setIsCheckingStatus(false);
+      return;
+    }
 
+    try {
+      // Direct Server Action Call (No manual fetch or URL needed!)
+      const res = await checkVendorRequestStatus(session.user.id);
+
+      if (res?.success && res?.request) {
+        setExistingRequest(res.request);
+      }
+    } catch (err) {
+      console.error("Failed to check vendor request status:", err);
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  }
+
+  checkVendorStatus();
+}, [session]);
   const onSubmit = async (e) => {
     e.preventDefault();
 
@@ -75,11 +99,10 @@ export function BecomeVendorRequestPage() {
       if (result?.success || result?.ok) {
         toast.success(
           result.message ||
-            "Vendor request submitted successfully! Waiting for admin approval.",
+            "Vendor request submitted successfully! Waiting for admin approval."
         );
 
-        form.reset();
-        setSelectedCategory("");
+        setExistingRequest(payload);
       } else {
         toast.error(result?.message || "Failed to submit request.");
       }
@@ -91,6 +114,92 @@ export function BecomeVendorRequestPage() {
     }
   };
 
+  if (isCheckingStatus) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <p className="text-sm text-gray-500">Checking application status...</p>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // STATUS CHECK & CONGRATULATIONS SCREEN
+  // -------------------------------------------------------------
+  if (existingRequest) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-2xl border p-8 shadow-md bg-background text-center">
+          
+          {/* 1. APPROVED STATUS -> CONGRATULATIONS CARD */}
+          {existingRequest.status === "approved" && (
+            <>
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 animate-bounce">
+                <FaceFun className="h-10 w-10" />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+                Approved Partner
+              </span>
+              <h2 className="text-2xl font-bold text-foreground">
+                Congratulations, {session?.user?.name || "Vendor"}! 🎉
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-zinc-400">
+                Your application for{" "}
+                <span className="font-semibold text-foreground">
+                  "{existingRequest.shopName}"
+                </span>{" "}
+                has been approved by the admin. You are now an official Vendor!
+              </p>
+
+              <div className="mt-4 w-full">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 transition-all shadow-lg shadow-emerald-600/20"
+                >
+                  Go to Vendor Dashboard
+                  <ArrowRight />
+                </Link>
+              </div>
+            </>
+          )}
+
+          {/* 2. PENDING STATUS */}
+          {existingRequest.status === "pending" && (
+            <>
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+                <Clock className="h-8 w-8" />
+              </div>
+              <h2 className="text-2xl font-bold">Application Under Review</h2>
+              <p className="text-sm text-gray-500">
+                You have submitted a request for shop{" "}
+                <span className="font-semibold text-foreground">
+                  "{existingRequest.shopName}"
+                </span>
+                . Please wait for the admin to review and approve your application.
+              </p>
+            </>
+          )}
+
+          {/* 3. REJECTED STATUS */}
+          {existingRequest.status === "rejected" && (
+            <>
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-500">
+                <Shield className="h-8 w-8" />
+              </div>
+              <h2 className="text-2xl font-bold">Application Rejected</h2>
+              <p className="text-sm text-gray-500">
+                Unfortunately, your vendor application was not approved. Please contact support for more details.
+              </p>
+            </>
+          )}
+
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // APPLICATION FORM (Visible only if no prior request)
+  // -------------------------------------------------------------
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Form

@@ -3,22 +3,21 @@
 import { useEffect, useState, useCallback } from "react";
 import { Table, Button, Avatar } from "@heroui/react";
 import { toast } from "react-toastify";
-import { getVendorRequests } from "@/lib/api/vendors";
-import { AdminUpdateVendorRequestStatus } from "@/lib/actions/vendors";
+import { getVendors } from "@/lib/api/vendors";
+import { AdminUpdateVendorStatus } from "@/lib/actions/vendors";
 
-export function AdminVendorRequestsPage() {
-  const [requests, setRequests] = useState([]);
+export function AdminVendorsPage() {
+  const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const [pagination, setPagination] = useState({
-    totalRequests: 0,
+    totalVendors: 0,
     totalPages: 1,
     currentPage: 1,
     limit: 10,
   });
 
-  // Extract string ID whether _id is a string or an object like { $oid: "..." }
   const getItemId = (item) => {
     if (!item?._id) return "";
     return typeof item._id === "object" && item._id.$oid
@@ -26,7 +25,6 @@ export function AdminVendorRequestsPage() {
       : item._id.toString();
   };
 
-  // Helper to safely format MongoDB dates
   const formatDate = (dateValue) => {
     if (!dateValue) return "N/A";
     const rawDate =
@@ -41,17 +39,17 @@ export function AdminVendorRequestsPage() {
     });
   };
 
-  const fetchRequests = useCallback(
+  const fetchVendorsList = useCallback(
     async (page) => {
       try {
         setIsLoading(true);
-        const data = await getVendorRequests(page, pagination.limit);
+        const data = await getVendors(page, pagination.limit);
 
         if (data.success) {
-          setRequests(data.data);
+          setVendors(data.data);
           setPagination(data.pagination);
         } else {
-          toast.error(data.message || "Failed to fetch vendor requests.");
+          toast.error(data.message || "Failed to fetch vendors.");
         }
       } catch (error) {
         console.error(error);
@@ -64,17 +62,19 @@ export function AdminVendorRequestsPage() {
   );
 
   useEffect(() => {
-    fetchRequests(pagination.currentPage);
-  }, [fetchRequests, pagination.currentPage]);
+    fetchVendorsList(pagination.currentPage);
+  }, [fetchVendorsList, pagination.currentPage]);
 
-  const handleStatusChange = async (id, status) => {
+  const handleStatusToggle = async (id, currentStatus) => {
+    const nextStatus = currentStatus === "blocked" ? "active" : "blocked";
+
     try {
       setActionLoadingId(id);
-      const data = await AdminUpdateVendorRequestStatus(id, status);
+      const data = await AdminUpdateVendorStatus(id, nextStatus);
 
       if (data?.success) {
         toast.success(data.message);
-        fetchRequests(pagination.currentPage);
+        fetchVendorsList(pagination.currentPage);
       } else {
         toast.error(data?.message || "Action failed.");
       }
@@ -89,9 +89,9 @@ export function AdminVendorRequestsPage() {
   return (
     <div className="w-full max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-foreground">Vendor Requests</h1>
+        <h1 className="text-2xl font-bold text-foreground">Manage Vendors</h1>
         <p className="text-sm text-default-500">
-          Review and manage pending shop owner applications
+          View, block, or unblock registered store vendors
         </p>
       </div>
 
@@ -99,15 +99,14 @@ export function AdminVendorRequestsPage() {
         <Table className="rounded-xl rounded-b-none">
           <Table.ScrollContainer>
             <Table.Content
-              aria-label="Vendor Applications Table"
+              aria-label="Vendors Management Table"
               className="min-w-[900px]"
             >
               <Table.Header>
-                <Table.Column isRowHeader>Applicant</Table.Column>
-                <Table.Column>Shop Info</Table.Column>
-                <Table.Column>Category</Table.Column>
+                <Table.Column isRowHeader>Vendor Info</Table.Column>
+                <Table.Column>Shop Name</Table.Column>
                 <Table.Column>Phone</Table.Column>
-                <Table.Column>Applied Date</Table.Column>
+                <Table.Column>Joined Date</Table.Column>
                 <Table.Column>Status</Table.Column>
                 <Table.Column>Actions</Table.Column>
               </Table.Header>
@@ -116,126 +115,103 @@ export function AdminVendorRequestsPage() {
                 {isLoading ? (
                   <Table.Row>
                     <Table.Cell
-                      colSpan={7}
+                      colSpan={6}
                       className="text-center py-8 text-default-500"
                     >
-                      Loading applications...
+                      Loading vendors...
                     </Table.Cell>
                   </Table.Row>
-                ) : requests.length === 0 ? (
+                ) : vendors.length === 0 ? (
                   <Table.Row>
                     <Table.Cell
-                      colSpan={7}
+                      colSpan={6}
                       className="text-center py-8 text-default-500"
                     >
-                      No vendor requests found.
+                      No vendors found.
                     </Table.Cell>
                   </Table.Row>
                 ) : (
-                  requests.map((item) => {
-                    const requestId = getItemId(item);
-console.log("requestId", requestId, item);
+                  vendors.map((item) => {
+                    const vendorId = getItemId(item);
+                    const isBlocked = item.status === "blocked";
+
                     return (
-                      <Table.Row key={requestId}>
-                        {/* Applicant User Info */}
+                      <Table.Row key={vendorId}>
+                        {/* Vendor User Info */}
                         <Table.Cell>
                           <div className="flex items-center gap-3">
                             <Avatar
-                              src={item?.userAvatar}
-                              name={item?.userName}
+                              src={item.image || item.userAvatar}
+                              name={item.name || item.userName}
                               className="w-9 h-9 border border-default-200 shrink-0"
                             />
                             <div className="flex flex-col">
                               <span className="font-medium text-foreground">
-                                {item?.userName}
+                                {item.name || item.userName}
                               </span>
                               <span className="text-xs text-default-500">
-                                {item?.userEmail}
+                                {item.email || item.userEmail}
                               </span>
                             </div>
                           </div>
                         </Table.Cell>
 
-                        {/* Shop Info & Logo */}
+                        {/* Shop Info */}
                         <Table.Cell>
                           <div className="flex items-center gap-3">
-                            {item?.shopImage && (
+                            {item.shopImage && (
                               <Avatar
-                                src={item?.shopImage}
-                                name={item?.shopName}
+                                src={item.shopImage}
+                                name={item.shopName}
                                 className="w-8 h-8 rounded-md shrink-0 border border-default-200"
                               />
                             )}
                             <span className="font-medium text-foreground">
-                              {item?.shopName}
+                              {item.shopName || "N/A"}
                             </span>
                           </div>
                         </Table.Cell>
 
-                        {/* Category */}
-                        <Table.Cell className="capitalize text-default-600">
-                          {item?.category?.replace("_", " ")}
-                        </Table.Cell>
-
                         {/* Phone */}
                         <Table.Cell className="text-default-600">
-                          {item?.phone}
+                          {item.phone || "N/A"}
                         </Table.Cell>
 
-                        {/* Created At */}
+                        {/* Joined Date */}
                         <Table.Cell className="text-xs text-default-500">
-                          {formatDate(item?.createdAt)}
+                          {formatDate(item.createdAt)}
                         </Table.Cell>
 
                         {/* Status Badge */}
                         <Table.Cell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              item.status === "approved"
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                : item.status === "rejected"
-                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                              isBlocked
+                                ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                             }`}
                           >
-                            {item.status?.toUpperCase()}
+                            {isBlocked ? "BLOCKED" : "ACTIVE"}
                           </span>
                         </Table.Cell>
 
-                        {/* Action Buttons */}
+                        {/* Actions */}
                         <Table.Cell>
-                          <div className="flex items-center gap-2">
-                            {item.status === "pending" ? (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-                                  isLoading={actionLoadingId === requestId}
-                                  isDisabled={actionLoadingId !== null}
-                                  onClick={() =>
-                                    handleStatusChange(requestId, "approved")
-                                  }
-                                >
-                                  Approve
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  className="bg-rose-600 hover:bg-rose-700 text-white font-medium"
-                                  isLoading={actionLoadingId === requestId}
-                                  isDisabled={actionLoadingId !== null}
-                                  onClick={() =>
-                                    handleStatusChange(requestId, "rejected")
-                                  }
-                                >
-                                  Reject
-                                </Button>
-                              </>
-                            ) : (
-                              <span className="text-xs text-default-400 italic">
-                                No actions
-                              </span>
-                            )}
-                          </div>
+                          <Button
+                            size="sm"
+                            className={
+                              isBlocked
+                                ? "bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                                : "bg-rose-600 hover:bg-rose-700 text-white font-medium"
+                            }
+                            isLoading={actionLoadingId === vendorId}
+                            isDisabled={actionLoadingId !== null}
+                            onClick={() =>
+                              handleStatusToggle(vendorId, item.status)
+                            }
+                          >
+                            {isBlocked ? "Unblock" : "Block"}
+                          </Button>
                         </Table.Cell>
                       </Table.Row>
                     );
@@ -246,7 +222,7 @@ console.log("requestId", requestId, item);
           </Table.ScrollContainer>
         </Table>
 
-        {/* Server-Side Pagination Controls */}
+        {/* Pagination */}
         <div className="flex items-center justify-between px-4 py-3 border-t border-default-200 bg-default-50/50 dark:bg-default-100/10">
           <span className="text-sm text-default-500">
             Page {pagination.currentPage} of {pagination.totalPages || 1}

@@ -10,7 +10,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-import DashboardLayout from "./dashboardlayout";
 import { authClient } from "@/lib/auth-client"; // Ensure this path matches your auth client setup
 
 function StatCard({ label, value, delta, positive, icon: Icon }) {
@@ -179,12 +178,5 @@ export default function Page() {
   const { data: session } = authClient.useSession();
   const role = session?.user?.role;
 
-  // if (!role || (role !== "admin" && role !== "vendor")) {
-  //   return <p>Access Denied! You do not have permission to view this page.</p>;
-  // }
-  return (
-    <DashboardLayout title="Overview" role={role}>
-      <DashboardContent role={role} />
-    </DashboardLayout>
-  );
+  return <DashboardContent role={role} />;
 }

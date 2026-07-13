@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 
@@ -19,7 +19,8 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { LuLayoutDashboard, LuStore } from "react-icons/lu";
 import { FaArrowRight } from "react-icons/fa";
-import { Avatar, Button, Dropdown, InputGroup, Label } from "@heroui/react";
+import { Avatar, Button, Dropdown, Label } from "@heroui/react";
+import { getCartItems } from "@/lib/api/cart";
 
 const CATEGORIES = [
   "All departments",
@@ -35,18 +36,56 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0]);
+  const [cartCount, setCartCount] = useState(0);
   const { theme, setTheme } = useTheme();
 
-  // Better Auth: `isPending` tells us the session is still resolving, so we
-  // can render a stable skeleton instead of flashing "Sign In" -> avatar,
-  // and it lets us gate the <img> render until we actually know the state.
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
+  const userId = user?.id;
   const sessionReady = mounted && !isPending;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch Cart Count via Server Action
+  const fetchCartCount = useCallback(async () => {
+    if (!userId) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const res = await getCartItems(userId);
+
+      if (res?.success && Array.isArray(res.data)) {
+        const totalQty = res.data.reduce(
+          (sum, item) => sum + (item.quantity || 1),
+          0
+        );
+        setCartCount(totalQty);
+      } else {
+        setCartCount(0);
+      }
+    } catch (error) {
+      console.warn("Cart fetch issue:", error.message);
+    }
+  }, [userId]);
+
+  // Initial Fetch & Custom Event Listener for Auto-Updating
+  useEffect(() => {
+    fetchCartCount();
+
+    const handleCartUpdate = () => {
+      fetchCartCount();
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdate);
+
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+    };
+  }, [fetchCartCount]);
 
   const appName = process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse";
 
@@ -62,7 +101,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#0A0A0A]">
-      {/* Utility strip — signals "many vendors under one roof" up front */}
+      {/* Utility strip */}
       <div className="hidden sm:block border-b border-white/10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between h-9 text-xs text-[#D9CBB4]">
           <div className="flex items-center gap-1.5 font-medium tracking-wide">
@@ -71,7 +110,7 @@ export function Navbar() {
             <span>independent vendors selling here</span>
           </div>
           <div className="flex items-center gap-5">
-            <Link href="/vendor/apply" className="hover:text-white transition-colors">
+            <Link href="/vendors/apply" className="hover:text-white transition-colors">
               Become a vendor
             </Link>
             <Link href="/orders/track" className="hover:text-white transition-colors">
@@ -109,7 +148,7 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Search — category selector fused to the input, like a market stall's price tag */}
+          {/* Search bar */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-4">
             <div className="flex w-full items-stretch rounded-lg border border-[#0A0A0A]/15 dark:border-white/15 bg-white dark:bg-[#141414] overflow-hidden focus-within:border-[#B98A3D] transition-colors">
               <div className="relative flex items-center border-r border-[#0A0A0A]/10 dark:border-white/10">
@@ -162,7 +201,9 @@ export function Navbar() {
               onPress={() => setTheme(theme === "dark" ? "light" : "dark")}
               aria-label="Toggle Theme"
             >
-              {!mounted ? <div className="size-5" /> : theme === "dark" ? (
+              {!mounted ? (
+                <div className="size-5" />
+              ) : theme === "dark" ? (
                 <Sun className="size-5" />
               ) : (
                 <Moon className="size-5" />
@@ -179,20 +220,21 @@ export function Navbar() {
               <Heart className="size-5" />
             </Button>
 
-            <Button
-              isIconOnly
-              variant="light"
-              as={Link}
+            {/* Auto-updating Cart Icon */}
+            <Link
               href="/cart"
-              className="relative text-[#0A0A0A] dark:text-[#FAF7F2]"
+              className="relative inline-flex items-center justify-center p-2 rounded-lg text-[#0A0A0A] dark:text-[#FAF7F2] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              aria-label="Shopping Cart"
             >
               <ShoppingBag className="size-5" />
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-sm bg-[#9C4A32] font-mono text-[10px] font-bold text-white">
-                3
-              </span>
-            </Button>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-sm bg-[#9C4A32] px-1 font-mono text-[10px] font-bold text-white shadow-sm">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
 
-            {/* User area — waits on sessionReady so we never flash the wrong state */}
+            {/* User area */}
             {!sessionReady ? (
               <div className="size-9 rounded-full bg-[#0A0A0A]/10 dark:bg-white/10 animate-pulse" />
             ) : user ? (

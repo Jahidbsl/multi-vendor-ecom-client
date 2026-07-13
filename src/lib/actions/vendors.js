@@ -12,3 +12,9 @@ export const AdminUpdateVendorRequestStatus = async (id, status) => {
   return serverPatch(`/api/vendor-requests/${id}/status`, { status });
 
 }
+
+
+export const AdminUpdateVendorStatus = async (id, status) => {
+  return serverPatch(`/api/vendors/${id}/status`, { status });
+};
+
