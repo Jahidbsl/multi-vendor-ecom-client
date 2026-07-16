@@ -38,6 +38,7 @@ import {
   toggleProductWishlist,
 } from "@/lib/actions/products";
 import { getProducts } from "@/lib/api/produts";
+import Link from "next/link";
 
 // Report Reasons List
 const REPORT_REASONS = [
@@ -348,14 +349,16 @@ export default function AllProductsPage() {
                       ${product.price}
                     </div>
                   </div>
-
-                  <Button
-                    className="bg-white/20 backdrop-blur-md hover:bg-amber-400 hover:text-zinc-900 text-white border border-white/30 font-semibold transition-all shrink-0"
-                    size="sm"
-                    onClick={() => handleViewDetails(product)}
+                  <Link
+                    href={`/products/${product._id}-${product.title.replace(/\s+/g, "-").toLowerCase()}`}
                   >
-                    <Eye size={16} /> View Details
-                  </Button>
+                    <Button
+                      className="bg-white/20 hover:bg-amber-400 text-white font-semibold"
+                      size="sm"
+                    >
+                      <Eye size={16} /> View Details
+                    </Button>
+                  </Link>
                 </Card.Footer>
               </Card>
             ))}

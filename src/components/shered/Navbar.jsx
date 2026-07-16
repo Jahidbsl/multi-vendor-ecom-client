@@ -113,7 +113,7 @@ export function Navbar() {
             <Link href="/vendors/apply" className="hover:text-white transition-colors">
               Become a vendor
             </Link>
-            <Link href="/orders/track" className="hover:text-white transition-colors">
+            <Link href="/my-orders" className="hover:text-white transition-colors">
               Track order
             </Link>
             <Link href="/help" className="hover:text-white transition-colors">
@@ -281,7 +281,7 @@ export function Navbar() {
                       </div>
                     </Dropdown.Item>
 
-                    <Dropdown.Item id="orders" textValue="My Orders" href="/orders">
+                    <Dropdown.Item id="my-orders" textValue="My Orders" href="/my-orders">
                       <div className="flex items-center gap-2">
                         <ShoppingBag className="size-4" />
                         <Label>My Orders</Label>

@@ -20,3 +20,30 @@ export const getVendors = async (page = 1, limit = 10) => {
 export const checkVendorRequestStatus = async (userId) => {
   return serverFetch(`/api/vendor-request/check/${userId}`);
 };
+
+export const getTopVendors = async () => {
+  const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/top-vendors`;
+
+  try {
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // রেসপন্সটি JSON হিসেবে পার্স করার চেষ্টা করুন
+    const data = await res.json();
+
+    if (!res.ok) {
+      // যদি সার্ভার থেকে এরর আসে, তবে তা থ্রো করুন
+      throw new Error(data.message || "Failed to fetch top vendors");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in getTopVendors:", error);
+    // কলিং কম্পোনেন্টে এরর পাঠানোর জন্য আবার থ্রো করুন
+    throw error;
+  }
+};

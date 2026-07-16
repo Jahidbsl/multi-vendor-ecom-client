@@ -3,13 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Card,
-  Button,
-  Skeleton,
-} from "@heroui/react";
+import { Card, Button, Skeleton } from "@heroui/react";
 import { toast } from "react-toastify";
-import { authClient } from "@/lib/auth-client"; // আপনার Auth setup অনুযায়ী
+import { authClient } from "@/lib/auth-client";
 import {
   ShoppingCart,
   Trash2,
@@ -20,6 +16,7 @@ import {
   ShieldCheck,
   CreditCard,
 } from "lucide-react";
+import { createCheckoutSession } from "@/lib/actions/checkout";
 
 export default function CartPage() {
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
@@ -29,9 +26,11 @@ export default function CartPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [updatingItemId, setUpdatingItemId] = useState(null);
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/+$/, "") || "http://localhost:5000";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/+$/, "") ||
+    "http://localhost:5000";
 
-  // 1. Fetch Cart Items for Logged-In User
+// 1. Fetch Cart Items for Logged-In User
   const fetchCartItems = useCallback(async () => {
     if (!userId) {
       setIsLoading(false);
@@ -51,7 +50,7 @@ export default function CartPage() {
     } catch (error) {
       console.error("Error fetching cart:", error);
       toast.error("Network error loading cart.");
-    } finally {
+    } finally { // 👈 Fixed typo here
       setIsLoading(false);
     }
   }, [baseUrl, userId]);
@@ -72,8 +71,8 @@ export default function CartPage() {
       // Optimistic Update
       setCartItems((prevItems) =>
         prevItems.map((item) =>
-          item._id === cartId ? { ...item, quantity: newQty } : item
-        )
+          item._id === cartId ? { ...item, quantity: newQty } : item,
+        ),
       );
 
       const res = await fetch(`${baseUrl}/api/cart/${cartId}`, {
@@ -88,8 +87,8 @@ export default function CartPage() {
         // Rollback state on failure
         setCartItems((prevItems) =>
           prevItems.map((item) =>
-            item._id === cartId ? { ...item, quantity: currentQty } : item
-          )
+            item._id === cartId ? { ...item, quantity: currentQty } : item,
+          ),
         );
         toast.error(data?.message || "Failed to update quantity");
       }
@@ -99,8 +98,8 @@ export default function CartPage() {
       // Rollback state
       setCartItems((prevItems) =>
         prevItems.map((item) =>
-          item._id === cartId ? { ...item, quantity: currentQty } : item
-        )
+          item._id === cartId ? { ...item, quantity: currentQty } : item,
+        ),
       );
     } finally {
       setUpdatingItemId(null);
@@ -161,10 +160,41 @@ export default function CartPage() {
   // Subtotal calculation
   const subtotal = cartItems.reduce(
     (acc, item) => acc + (parseFloat(item.price) || 0) * (item.quantity || 1),
-    0
+    0,
   );
   const shippingFee = cartItems.length > 0 ? 10 : 0;
   const totalPrice = subtotal + shippingFee;
+
+  // 5. Checkout Handler
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+
+    try {
+      setIsCheckingOut(true);
+
+      // Trigger server action to generate Stripe checkout session
+      const res = await createCheckoutSession({
+        userId: userId,
+        products: cartItems,
+      });
+
+      // Verify server response for URL
+      if (res?.url) {
+        window.location.href = res.url; // Redirect to Stripe payment page
+      } else {
+        toast.error(
+          res?.error || res?.message || "Failed to initiate checkout",
+        );
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("An unexpected error occurred during checkout.");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   if (isAuthLoading || isLoading) {
     return (
@@ -189,7 +219,12 @@ export default function CartPage() {
         <p className="text-sm text-default-500 mt-1 mb-6">
           You need to be logged in to view and manage your shopping cart.
         </p>
-        <Button as={Link} href="/login" color="amber" className="font-bold bg-amber-500 text-zinc-950">
+        <Button
+          as={Link}
+          href="/login"
+          color="amber"
+          className="font-bold bg-amber-500 text-zinc-950"
+        >
           Go to Login
         </Button>
       </div>
@@ -199,7 +234,6 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-default-50/50 dark:bg-zinc-950 text-foreground py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-default-200 dark:border-white/10 pb-6">
           <div>
@@ -246,11 +280,11 @@ export default function CartPage() {
         ) : (
           /* Cart Content Layout */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
             {/* Left Side: Cart Items List */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
-                const itemTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
+                const itemTotal =
+                  (parseFloat(item.price) || 0) * (item.quantity || 1);
 
                 return (
                   <Card
@@ -274,7 +308,10 @@ export default function CartPage() {
                           {item.title}
                         </h4>
                         <p className="text-xs text-default-500">
-                          Unit Price: <span className="font-semibold text-amber-500">${item.price}</span>
+                          Unit Price:{" "}
+                          <span className="font-semibold text-amber-500">
+                            ${item.price}
+                          </span>
                         </p>
                         <p className="text-sm font-extrabold text-foreground sm:hidden">
                           Total: ${itemTotal.toFixed(2)}
@@ -284,12 +321,19 @@ export default function CartPage() {
 
                     {/* Quantity Controls & Delete Action */}
                     <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-default-100 dark:border-white/5">
-                      
                       {/* Increment / Decrement Counter */}
                       <div className="flex items-center gap-2 bg-default-100 dark:bg-zinc-800 p-1.5 rounded-xl border border-default-200 dark:border-white/10">
                         <button
-                          onClick={() => handleUpdateQuantity(item._id, item.quantity, item.quantity - 1)}
-                          disabled={item.quantity <= 1 || updatingItemId === item._id}
+                          onClick={() =>
+                            handleUpdateQuantity(
+                              item._id,
+                              item.quantity,
+                              item.quantity - 1,
+                            )
+                          }
+                          disabled={
+                            item.quantity <= 1 || updatingItemId === item._id
+                          }
                           className="w-7 h-7 flex items-center justify-center rounded-lg bg-background text-foreground hover:bg-default-200 disabled:opacity-40 transition-all text-xs font-bold"
                           title="Decrease Quantity"
                         >
@@ -301,7 +345,13 @@ export default function CartPage() {
                         </span>
 
                         <button
-                          onClick={() => handleUpdateQuantity(item._id, item.quantity, item.quantity + 1)}
+                          onClick={() =>
+                            handleUpdateQuantity(
+                              item._id,
+                              item.quantity,
+                              item.quantity + 1,
+                            )
+                          }
                           disabled={updatingItemId === item._id}
                           className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500 text-zinc-950 hover:bg-amber-400 transition-all text-xs font-bold"
                           title="Increase Quantity"
@@ -312,7 +362,9 @@ export default function CartPage() {
 
                       {/* Total Price Display */}
                       <div className="hidden sm:block text-right min-w-[80px]">
-                        <span className="text-xs text-default-400 block">Total</span>
+                        <span className="text-xs text-default-400 block">
+                          Total
+                        </span>
                         <span className="font-extrabold text-base text-amber-500">
                           ${itemTotal.toFixed(2)}
                         </span>
@@ -354,25 +406,35 @@ export default function CartPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between text-default-500">
                     <span>Subtotal ({cartItems.length} items)</span>
-                    <span className="font-semibold text-foreground">${subtotal.toFixed(2)}</span>
+                    <span className="font-semibold text-foreground">
+                      ${subtotal.toFixed(2)}
+                    </span>
                   </div>
 
                   <div className="flex justify-between text-default-500">
                     <span>Estimated Shipping</span>
-                    <span className="font-semibold text-foreground">${shippingFee.toFixed(2)}</span>
+                    <span className="font-semibold text-foreground">
+                      ${shippingFee.toFixed(2)}
+                    </span>
                   </div>
 
-<hr className="border-default-200 dark:border-white/10 my-2" />
+                  <hr className="border-default-200 dark:border-white/10 my-2" />
                   <div className="flex justify-between text-base font-extrabold text-foreground pt-1">
                     <span>Total Amount</span>
-                    <span className="text-amber-500">${totalPrice.toFixed(2)}</span>
+                    <span className="text-amber-500">
+                      ${totalPrice.toFixed(2)}
+                    </span>
                   </div>
                 </div>
 
                 <Button
+                  onClick={handleCheckout}
+                  isLoading={isCheckingOut}
+                  disabled={isCheckingOut || cartItems.length === 0}
                   className="w-full bg-amber-400 hover:bg-amber-500 text-zinc-950 font-extrabold text-base py-6 rounded-2xl shadow-lg transition-all"
                 >
-                  <CreditCard size={18} /> Proceed to Checkout
+                  <CreditCard size={18} />{" "}
+                  {isCheckingOut ? "Processing..." : "Proceed to Checkout"}
                 </Button>
 
                 <div className="flex items-center justify-center gap-2 text-xs text-default-400 pt-2">
@@ -381,10 +443,8 @@ export default function CartPage() {
                 </div>
               </Card>
             </div>
-
           </div>
         )}
-
       </div>
     </div>
   );

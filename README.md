@@ -32,3 +32,9 @@ When registering for an account, your password must meet the following validatio
 
 
 -- create admin with better auth Plugin
+
+-- use stripe for payment 
+stripe Secret key= 
+
+Publishable key = 
+

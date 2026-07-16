@@ -226,7 +226,8 @@ export default function VendorDetailsPage({ params }) {
                       <span className="text-lg font-bold text-zinc-900 dark:text-white">
                         ${product.price}
                       </span>
-                      <Link href={`/products/${product._id}`}>
+                      <Link href={`/products/${product._id}-${product.title.replace(/\s+/g, "-").toLowerCase()}`}>
+                      
                         <Button
                           size="sm"
                           className="bg-amber-400 hover:bg-amber-500 text-zinc-900 font-semibold rounded-lg"

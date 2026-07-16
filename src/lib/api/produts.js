@@ -7,7 +7,10 @@ export const getVendorProductsAction = async (vendorId, page = 1, limit = 8) => 
 };
 
 
-
+export async function getProductById(id) {
+  const res = await serverFetch(`/api/products/${id}`);
+  return res.success ? res.data : null;
+}
 
 /**
  * Fetch products list with pagination
