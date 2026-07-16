@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { Avatar, Button, Spinner } from "@heroui/react";
 import { toast } from "react-toastify";
+import Image from "next/image";
 import {
   Store,
   Phone,
@@ -92,7 +93,8 @@ export default function VendorDetailsPage({ params }) {
           Store Not Found
         </h2>
         <p className="text-sm text-zinc-500 mt-1 max-w-md">
-          The store you are looking for does not exist or may have been suspended.
+          The store you are looking for does not exist or may have been
+          suspended.
         </p>
         <Link href="/vendors" className="mt-6">
           <Button className="bg-amber-400 hover:bg-amber-500 text-zinc-900 font-semibold rounded-xl">
@@ -107,7 +109,6 @@ export default function VendorDetailsPage({ params }) {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-[#0b0b0d] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        
         {/* Back Button */}
         <div>
           <Link href="/vendors">
@@ -202,14 +203,16 @@ export default function VendorDetailsPage({ params }) {
                   className="group rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#141316] overflow-hidden shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-200"
                 >
                   <div className="h-48 w-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-                    <img
+                    <Image
                       src={
                         product.image ||
                         product.images?.[0] ||
                         "https://via.placeholder.com/300"
                       }
-                      alt={product.title || product.name}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      alt={product.title || product.name || "Product image"}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
 
@@ -226,8 +229,9 @@ export default function VendorDetailsPage({ params }) {
                       <span className="text-lg font-bold text-zinc-900 dark:text-white">
                         ${product.price}
                       </span>
-                      <Link href={`/products/${product._id}-${product.title.replace(/\s+/g, "-").toLowerCase()}`}>
-                      
+                      <Link
+                        href={`/products/${product._id}-${product.title.replace(/\s+/g, "-").toLowerCase()}`}
+                      >
                         <Button
                           size="sm"
                           className="bg-amber-400 hover:bg-amber-500 text-zinc-900 font-semibold rounded-lg"
@@ -242,7 +246,6 @@ export default function VendorDetailsPage({ params }) {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

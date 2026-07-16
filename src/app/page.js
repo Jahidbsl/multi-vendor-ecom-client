@@ -1,11 +1,12 @@
 import { HeroBanner } from "@/components/Herobanner";
+import TopSellingProducts from "@/components/Topsellingproducts";
 import TopVendors from "@/components/TopVendors";
-import Image from "next/image";
 
 export default function Home() {
   return (
     <div>
       <HeroBanner />
+      <TopSellingProducts/>
       <TopVendors />
     </div>
   );

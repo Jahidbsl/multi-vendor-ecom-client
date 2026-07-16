@@ -58,7 +58,7 @@ export function LoginPage() {
       {
         email,
         password,
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       },
       {
         onRequest: () => {
@@ -67,7 +67,7 @@ export function LoginPage() {
         onSuccess: () => {
           setIsLoading(false);
           toast.success("Signed in successfully!");
-          router.push("/dashboard");
+          router.push("/");
         },
         onError: (ctx) => {
           setIsLoading(false);
@@ -82,7 +82,7 @@ export function LoginPage() {
     await authClient.signIn.social(
       {
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       },
       {
         onRequest: () => {

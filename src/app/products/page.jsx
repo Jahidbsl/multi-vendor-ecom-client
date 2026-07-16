@@ -80,7 +80,7 @@ export default function AllProductsPage() {
     totalProducts: 0,
     totalPages: 1,
     currentPage: 1,
-    limit: 8,
+    limit: 9,
   });
 
   // 1. Fetch Products via serverFetch Action

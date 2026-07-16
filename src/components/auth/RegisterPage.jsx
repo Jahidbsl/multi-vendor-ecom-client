@@ -41,7 +41,7 @@ export function RegisterPage() {
         password,
         name,
         image: imageUrl || undefined,
-        callbackURL: "/dashboard",
+        callbackURL: "/",
       },
       {
         onRequest: () => {
@@ -50,7 +50,7 @@ export function RegisterPage() {
         onSuccess: () => {
           setIsLoading(false);
           toast.success("Account created successfully!");
-          router.push("/dashboard");
+          router.push("/");
         },
         onError: (ctx) => {
           setIsLoading(false);
