@@ -17,47 +17,57 @@ import { toast } from "react-toastify";
 import { authClient } from "@/lib/auth-client";
 import { submitApplicationForVendor } from "@/lib/actions/vendors";
 import { checkVendorRequestStatus } from "@/lib/api/vendors";
-
-
-const categories = [
-  { label: "Fashion", value: "fashion" },
-  { label: "Home & Living", value: "home_living" },
-  { label: "Electronics", value: "electronics" },
-  { label: "Beauty", value: "beauty" },
-  { label: "Handmade", value: "handmade" },
-  { label: "Groceries", value: "groceries" },
-];
+import { getAdminCategories } from "@/lib/api/categories";
 
 export function BecomeVendorRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [existingRequest, setExistingRequest] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [categories, setCategories] = useState([]);
   const { data: session } = authClient.useSession();
 
-useEffect(() => {
-  async function checkVendorStatus() {
-    if (!session?.user?.id) {
-      setIsCheckingStatus(false);
-      return;
-    }
-
-    try {
-      // Direct Server Action Call (No manual fetch or URL needed!)
-      const res = await checkVendorRequestStatus(session.user.id);
-
-      if (res?.success && res?.request) {
-        setExistingRequest(res.request);
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await getAdminCategories();
+        if (res && res.success && Array.isArray(res.data)) {
+          const formattedCategories = res.data.map((cat) => ({
+            label: cat.name,
+            value: cat._id,
+          }));
+          setCategories(formattedCategories);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
       }
-    } catch (err) {
-      console.error("Failed to check vendor request status:", err);
-    } finally {
-      setIsCheckingStatus(false);
     }
-  }
+    fetchCategories();
+  }, []);
 
-  checkVendorStatus();
-}, [session]);
+  useEffect(() => {
+    async function checkVendorStatus() {
+      if (!session?.user?.id) {
+        setIsCheckingStatus(false);
+        return;
+      }
+
+      try {
+        const res = await checkVendorRequestStatus(session.user.id);
+
+        if (res?.success && res?.request) {
+          setExistingRequest(res.request);
+        }
+      } catch (err) {
+        console.error("Failed to check vendor request status:", err);
+      } finally {
+        setIsCheckingStatus(false);
+      }
+    }
+
+    checkVendorStatus();
+  }, [session]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
 
@@ -122,15 +132,11 @@ useEffect(() => {
     );
   }
 
-  // -------------------------------------------------------------
-  // STATUS CHECK & CONGRATULATIONS SCREEN
-  // -------------------------------------------------------------
   if (existingRequest) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-2xl border p-8 shadow-md bg-background text-center">
           
-          {/* 1. APPROVED STATUS -> CONGRATULATIONS CARD */}
           {existingRequest.status === "approved" && (
             <>
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 animate-bounce">
@@ -162,7 +168,6 @@ useEffect(() => {
             </>
           )}
 
-          {/* 2. PENDING STATUS */}
           {existingRequest.status === "pending" && (
             <>
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
@@ -179,7 +184,6 @@ useEffect(() => {
             </>
           )}
 
-          {/* 3. REJECTED STATUS */}
           {existingRequest.status === "rejected" && (
             <>
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-500">
@@ -197,9 +201,6 @@ useEffect(() => {
     );
   }
 
-  // -------------------------------------------------------------
-  // APPLICATION FORM (Visible only if no prior request)
-  // -------------------------------------------------------------
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Form
@@ -213,7 +214,6 @@ useEffect(() => {
           </p>
         </div>
 
-        {/* Shop Name */}
         <TextField
           isRequired
           name="shopName"
@@ -227,7 +227,6 @@ useEffect(() => {
           <FieldError />
         </TextField>
 
-        {/* Shop Category */}
         <Select
           className="w-full"
           placeholder="Select a department"
@@ -258,7 +257,6 @@ useEffect(() => {
           </Select.Popover>
         </Select>
 
-        {/* Shop Image URL */}
         <TextField
           isRequired
           name="shopImage"
@@ -280,7 +278,6 @@ useEffect(() => {
           <FieldError />
         </TextField>
 
-        {/* Phone Number */}
         <TextField
           isRequired
           name="phone"
@@ -302,7 +299,6 @@ useEffect(() => {
           <FieldError />
         </TextField>
 
-        {/* Submit Button */}
         <Button
           className="w-full bg-blue-600 text-white hover:bg-blue-700 mt-2"
           type="submit"

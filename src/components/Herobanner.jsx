@@ -4,22 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Lottie from "lottie-react";
 import { LuStore, LuPackage, LuGlobe, LuArrowRight } from "react-icons/lu";
-
-// Drop any free Lottie JSON here, e.g. from:
-// https://lottiefiles.com/free-animations/shopping-bag
-// Save it as /public/lottie/shopping-hero.json and this import will pick it up.
 import shoppingAnimation from "@/public/lottie/Shopping bag.json";
-
-const CATEGORY_TICKER = [
-  "Fashion",
-  "Home & Living",
-  "Electronics",
-  "Beauty",
-  "Handmade",
-  "Groceries",
-  "Vintage",
-  "Art & Prints",
-];
+import { getAdminCategories } from "@/lib/api/categories";
 
 const FLOATING_TAGS = [
   { label: "Ceramic vase", price: "$42", top: "6%", left: "-6%", delay: "0s", rotate: "-6deg" },
@@ -70,7 +56,27 @@ function useCountUp(target, shouldRun) {
 
 export function HeroBanner() {
   const [isVisible, setIsVisible] = useState(false);
+  const [categoryTicker, setCategoryTicker] = useState([
+    "Fashion",
+    "Home & Living",
+    "Electronics",
+    "Beauty",
+    "Handmade",
+    "Groceries",
+    "Vintage",
+    "Art & Prints",
+  ]);
   const sectionRef = useRef(null);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const res = await getAdminCategories();
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setCategoryTicker(res.data.map((cat) => cat.name));
+      }
+    }
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -93,13 +99,11 @@ export function HeroBanner() {
       ref={sectionRef}
       className="relative overflow-hidden bg-[#FAF7F2] dark:bg-[#0A0A0A]"
     >
-      {/* Ambient glow */}
       <div className="glow-a pointer-events-none absolute -top-24 -left-16 h-64 w-64 sm:h-96 sm:w-96 rounded-full bg-[#B98A3D]/25 blur-[80px] sm:blur-[100px]" />
       <div className="glow-b pointer-events-none absolute -bottom-32 -right-10 h-72 w-72 sm:h-[28rem] sm:w-[28rem] rounded-full bg-[#9C4A32]/15 blur-[90px] sm:blur-[110px]" />
 
       <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-14 pb-12 sm:pt-20 sm:pb-20 lg:pt-24 lg:pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-10 lg:gap-12">
-          {/* Text column */}
           <div className="text-center lg:text-left">
             <span
               className={`reveal inline-flex items-center gap-1.5 rounded-full border border-[#B98A3D]/30 bg-[#B98A3D]/10 px-3 py-1 text-xs font-medium text-[#B98A3D] ${isVisible ? "reveal-in" : ""}`}
@@ -146,7 +150,6 @@ export function HeroBanner() {
             </div>
           </div>
 
-          {/* Animation column */}
           <div
             className={`reveal relative mx-auto w-full max-w-sm sm:max-w-md lg:max-w-none ${isVisible ? "reveal-in" : ""}`}
             style={{ animationDelay: "0.3s" }}
@@ -159,7 +162,6 @@ export function HeroBanner() {
                 aria-hidden="true"
               />
 
-              {/* Floating price tags anchored to the animation, hidden on small screens */}
               <div className="hidden md:block">
                 {FLOATING_TAGS.map((tag) => (
                   <div
@@ -185,14 +187,13 @@ export function HeroBanner() {
           </div>
         </div>
 
-        {/* Category ticker — infinite marquee */}
         <div
           className={`reveal mt-12 sm:mt-16 lg:mt-20 ${isVisible ? "reveal-in" : ""}`}
           style={{ animationDelay: "0.45s" }}
         >
           <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
             <div className="marquee flex w-max items-center gap-3 py-1">
-              {[...CATEGORY_TICKER, ...CATEGORY_TICKER].map((cat, i) => (
+              {[...categoryTicker, ...categoryTicker].map((cat, i) => (
                 <span
                   key={`${cat}-${i}`}
                   className="shrink-0 rounded-full border border-[#0A0A0A]/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-4 py-1.5 text-xs font-medium text-[#0A0A0A]/70 dark:text-[#D9CBB4]"
@@ -204,7 +205,6 @@ export function HeroBanner() {
           </div>
         </div>
 
-        {/* Stats */}
         <div
           className={`reveal mt-10 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 border-t border-[#0A0A0A]/10 dark:border-white/10 pt-8 sm:pt-10 ${isVisible ? "reveal-in" : ""}`}
           style={{ animationDelay: "0.55s" }}

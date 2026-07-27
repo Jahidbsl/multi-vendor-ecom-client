@@ -5,11 +5,8 @@
 // - Desktop (lg+): fixed sidebar, collapsible to an icon rail
 // - Tablet (md): icon rail by default, expands on toggle
 // - Mobile: off-canvas drawer with overlay
-//
-// Usage:
-// <Sidebar role={user.role} collapsed={collapsed} mobileOpen={mobileOpen}
-//          onCloseMobile={() => setMobileOpen(false)} />
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -197,6 +194,29 @@ export default function Sidebar({
   onCloseMobile,
   user,
 }) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // সার্ভার সাইড রেন্ডারিংয়ের সময় বা মাউন্ট হওয়ার আগে স্ট্যাটিক স্টাইল রেন্ডার করুন
+  if (!isMounted) {
+    return (
+      <aside 
+        className="hidden md:block shrink-0 border-r border-zinc-200 dark:border-white/10 h-screen sticky top-0"
+        style={{ width: collapsed ? RAIL_WIDTH : FULL_WIDTH }}
+      >
+        <SidebarInner
+          role={role}
+          collapsed={collapsed}
+          user={user}
+          onToggleCollapse={onToggleCollapse}
+        />
+      </aside>
+    );
+  }
+
   return (
     <>
       {/* Desktop / tablet sidebar */}

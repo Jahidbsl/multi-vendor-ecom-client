@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardTopbar from "@/components/Dashboardtopbar";
 import { useAuthUser } from "@/lib/core/Useauthuser";
 import Sidebar from "@/components/Sidebar";
+import animationData from '@/public/lottie/loading.json';
 
-// Next.js layout auto-receives children.
-// 'title' prop layout এ কাজ করে না, এটি আমরা Topbar এ static বা dynamic রাখতে পারি।
+
 export default function Layout({ children }) {
   const { user, isPending } = useAuthUser();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (isPending) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // সার্ভার ও client এর প্রথম pass এ সবসময় এই একই output — mismatch হবে না
+  if (!mounted || isPending) {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-50 dark:bg-[#0b0b0d] text-sm text-zinc-500">
         Loading your dashboard...
@@ -30,7 +36,6 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex min-h-screen bg-zinc-50 dark:bg-[#0b0b0d]">
-      {/* Sidebar */}
       <Sidebar
         role={user?.role}
         collapsed={collapsed}
@@ -39,8 +44,6 @@ export default function Layout({ children }) {
         onCloseMobile={() => setMobileOpen(false)}
         user={user}
       />
-
-      {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardTopbar
           title="Dashboard"

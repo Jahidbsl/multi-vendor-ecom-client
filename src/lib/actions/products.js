@@ -1,6 +1,8 @@
 "use server";
 
 import { serverMutation, serverPatch } from "../core/server";
+import { revalidatePath } from "next/cache";
+
 
 // Create Product
 export const createProductAction = async (productData) => {
@@ -86,5 +88,32 @@ export async function addToCart(cartPayload) {
       success: false,
       message: error.message || "Failed to add product to cart",
     };
+  }
+}
+
+
+
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+// Admin Delete Product Action
+export async function deleteProductActionforAdmin(productId) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete product");
+    }
+
+    // Revalidate the manage products path if needed
+    revalidatePath("/admin/manage-products");
+
+    return { success: true, message: data.message };
+  } catch (error) {
+    return { success: false, message: error.message };
   }
 }

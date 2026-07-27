@@ -9,9 +9,11 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      
     ],
   },
  
 };
+
 
 export default nextConfig;

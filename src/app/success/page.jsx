@@ -1,8 +1,9 @@
+// app/success/page.jsx (Success Page Frontend Component)
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { stripe } from '@/lib/stripe';
 import { verifyPayment } from '@/lib/actions/payment';
-import { CheckCircle2, Mail, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShoppingBag } from 'lucide-react';
 
 export default async function SuccessPage({ searchParams }) {
   const params = await searchParams;
@@ -12,7 +13,6 @@ export default async function SuccessPage({ searchParams }) {
     redirect('/');
   }
 
-  // ১. Stripe থেকে সেশন ডিটেইলস নিয়ে আসা
   let session;
   try {
     session = await stripe.checkout.sessions.retrieve(session_id, {
@@ -23,21 +23,18 @@ export default async function SuccessPage({ searchParams }) {
     redirect('/');
   }
 
-  // ২. পেমেন্ট স্ট্যাটাস আপডেট করা (Server-Side এ সরাসরি ভেরিফাই)
   const paymentResult = await verifyPayment(session_id);
   if (!paymentResult.success) {
     console.error('Payment verification failed:', paymentResult.message);
   }
 
   const { status, customer_details, amount_total, currency, metadata } = session;
-  const customerEmail = customer_details?.email;
   const userId = metadata?.userId;
 
   if (status !== 'complete') {
     return redirect('/');
   }
 
-  // ৩. কার্ট ক্লিয়ার করা (API কল)
   if (userId) {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000';
@@ -53,7 +50,6 @@ export default async function SuccessPage({ searchParams }) {
   return (
     <div className="min-h-screen bg-default-50/50 dark:bg-zinc-950 text-foreground flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-background border border-default-200 dark:border-white/10 rounded-3xl p-8 shadow-xl space-y-6 text-center">
-        {/* Success Icon */}
         <div className="mx-auto w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center ring-8 ring-emerald-500/5">
           <CheckCircle2 size={48} />
         </div>
@@ -65,7 +61,6 @@ export default async function SuccessPage({ searchParams }) {
           </p>
         </div>
 
-        {/* Order Details */}
         <div className="bg-default-100/50 dark:bg-zinc-900/60 rounded-2xl p-4 text-left space-y-3 border border-default-200/50">
           <div className="flex justify-between text-xs text-default-500">
             <span>Status</span>
@@ -79,7 +74,6 @@ export default async function SuccessPage({ searchParams }) {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="pt-2 space-y-3">
           <Link href="/my-orders" className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-3.5 rounded-2xl transition-all">
             <ShoppingBag size={18} /> View My Orders

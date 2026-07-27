@@ -15,9 +15,17 @@ export async function getProductById(id) {
 /**
  * Fetch products list with pagination
  */
-export async function getProducts(page = 1, limit = 9) {
+export async function getProducts(page = 1, limit = 10000, search = "", category = "") {
   try {
-    const response = await serverFetch(`/api/products?page=${page}&limit=${limit}`, {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (search) params.append("search", search);
+    if (category && category !== "All departments") params.append("category", category);
+
+    const response = await serverFetch(`/api/products?${params.toString()}`, {
       method: "GET",
       cache: "no-store",
     });
@@ -45,7 +53,6 @@ export async function getProducts(page = 1, limit = 9) {
     };
   }
 }
-
 /**
  * Fetch top selling products, ranked by units sold.
  * Expects the backend to expose GET /api/products/top-selling?limit=
@@ -79,5 +86,48 @@ export async function getTopSellingProducts(limit = 8) {
       data: [],
       message: error.message || "Network error fetching top selling products",
     };
+  }
+}
+
+
+
+// admin products manage
+export async function getAdminProducts({ search = "", page = 1, limit = 10 } = {}) {
+  try {
+    const endpoint = `/admin/products?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`;
+    
+    const data = await serverFetch(endpoint, {
+      cache: "no-store",
+    });
+
+    if (!data) {
+      return { success: false, data: [], pagination: { totalPages: 1 } };
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch admin products:", error);
+    return { success: false, data: [], pagination: { totalPages: 1 } };
+  }
+}
+
+
+export async function adminToggleFeaturedProduct(productId, hasfeature) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+    const res = await fetch(`${baseUrl}/api/admin/products/${productId}/featured`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ hasfeature }),
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to toggle featured product:", error);
+    return { success: false, message: error.message };
   }
 }

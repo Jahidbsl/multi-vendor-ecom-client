@@ -47,3 +47,20 @@ export const getTopVendors = async () => {
     throw error;
   }
 };
+
+
+
+//  * Fetch a single vendor's store details by id.
+//  * GET /api/vendors/:id
+//  */
+export const getVendorById = async (id) => {
+  return await serverFetch(`/api/vendors/${id}`);
+};
+ 
+/**
+ * Fetch all products belonging to a vendor.
+ * GET /api/products/vendor/:id
+ */
+export const getVendorProducts = async (id) => {
+  return await serverFetch(`/api/products/vendor/${id}`);
+};

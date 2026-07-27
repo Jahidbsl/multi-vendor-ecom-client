@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Avatar, Button, Spinner } from "@heroui/react";
 import { toast } from "react-toastify";
 import Image from "next/image";
+import { getVendorById, getVendorProducts } from "@/lib/api/vendors";
 import {
   Store,
   Phone,
@@ -15,6 +16,19 @@ import {
   ShoppingBag,
   Package,
 } from "lucide-react";
+
+// Resolves an image field into a fully-qualified URL.
+// Handles absolute URLs, relative API paths, and missing values.
+const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/+$/, "") ||
+    "http://localhost:5000";
+
+  return `${baseUrl}/${path.replace(/^\/+/, "")}`;
+};
 
 export default function VendorDetailsPage({ params }) {
   const { id } = use(params);
@@ -27,23 +41,19 @@ export default function VendorDetailsPage({ params }) {
     async function fetchVendorDetails() {
       try {
         setIsLoading(true);
-        const baseUrl =
-          process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/+$/, "") ||
-          "http://localhost:5000";
 
         // 1. Fetch vendor store details
-        const vendorRes = await fetch(`${baseUrl}/api/vendors/${id}`);
-        const vendorData = await vendorRes.json();
+        const vendorData = await getVendorById(id);
 
         if (vendorData?.success) {
           setVendor(vendorData.data);
+           console.log("VENDOR RAW DATA:", vendorData.data);
         } else {
           toast.error(vendorData?.message || "Vendor store not found");
         }
 
         // 2. Fetch vendor products
-        const productsRes = await fetch(`${baseUrl}/api/products/vendor/${id}`);
-        const productsData = await productsRes.json();
+        const productsData = await getVendorProducts(id);
 
         if (productsData?.success) {
           setProducts(productsData.data || []);
@@ -106,6 +116,10 @@ export default function VendorDetailsPage({ params }) {
     );
   }
 
+  const shopImgSrc = getImageUrl(
+    vendor.shopImage || vendor.image || vendor.userAvatar,
+  );
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-[#0b0b0d] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -129,11 +143,23 @@ export default function VendorDetailsPage({ params }) {
 
           <div className="p-6 sm:p-8 pt-0 relative flex flex-col md:flex-row items-start md:items-end justify-between gap-6 -mt-16 sm:-mt-20">
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5">
-              <Avatar
-                src={vendor.shopImage || vendor.image || vendor.userAvatar}
-                name={vendor.shopName || vendor.name}
-                className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl border-4 border-white dark:border-[#141316] shadow-md shrink-0 bg-white"
-              />
+              <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-2xl border-4 border-white dark:border-[#141316] shadow-md shrink-0 bg-amber-400 overflow-hidden flex items-center justify-center">
+                {shopImgSrc ? (
+                  <Image
+                    src={shopImgSrc}
+                    alt={vendor.shopName || vendor.name || "Store Image"}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl font-bold text-white">
+                    {(vendor.shopName || vendor.name || "S")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </span>
+                )}
+              </div>
 
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -197,52 +223,73 @@ export default function VendorDetailsPage({ params }) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <div
-                  key={product._id}
-                  className="group rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#141316] overflow-hidden shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-200"
-                >
-                  <div className="h-48 w-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
-                    <Image
-                      src={
-                        product.image ||
-                        product.images?.[0] ||
-                        "https://via.placeholder.com/300"
-                      }
-                      alt={product.title || product.name || "Product image"}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
+{products.map((product) => {
+  const productImgSrc = getImageUrl(
+    product.image || product.images?.[0]
+  );
 
-                  <div className="p-4 space-y-2">
-                    <h3 className="font-semibold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-amber-500 transition-colors">
-                      {product.title || product.name}
-                    </h3>
+  return (
+    <div
+      key={product._id}
+      className="relative group rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#141316] overflow-hidden shadow-sm hover:shadow-md hover:border-amber-400/50 transition-all duration-200"
+    >
+      {/* Discount Badge */}
+      {product.hasDiscount && (
+        <span className="absolute top-3 right-3 z-20 text-xs font-bold bg-red-600 text-white px-2 py-1 rounded-full shadow-lg">
+          {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+        </span>
+      )}
 
-                    <p className="text-xs text-zinc-500 line-clamp-2">
-                      {product.description || "No description provided."}
-                    </p>
+      {/* Product Image */}
+      <div className="h-48 w-full bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
+        <Image
+          src={productImgSrc || "https://via.placeholder.com/300"}
+          alt={product.title || product.name || "Product image"}
+          fill
+          unoptimized
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-white/5">
-                      <span className="text-lg font-bold text-zinc-900 dark:text-white">
-                        ${product.price}
-                      </span>
-                      <Link
-                        href={`/products/${product._id}-${product.title.replace(/\s+/g, "-").toLowerCase()}`}
-                      >
-                        <Button
-                          size="sm"
-                          className="bg-amber-400 hover:bg-amber-500 text-zinc-900 font-semibold rounded-lg"
-                        >
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
+      {/* Product Details */}
+      <div className="p-4 space-y-2">
+        <h3 className="font-semibold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-amber-500 transition-colors">
+          {product.title || product.name}
+        </h3>
+
+        <p className="text-xs text-zinc-500 line-clamp-2">
+          {product.description || "No description provided."}
+        </p>
+
+        <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-white/5">
+          {/* Price Section */}
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-amber-500">
+              ${product.price}
+            </span>
+            {product.hasDiscount && (
+              <span className="text-xs text-zinc-400 line-through">
+                ${product.originalPrice}
+              </span>
+            )}
+          </div>
+
+          <Link
+            href={`/products/${product._id}-${product.title.replace(/\s+/g, "-").toLowerCase()}`}
+          >
+            <Button
+              size="sm"
+              className="bg-amber-400 hover:bg-amber-500 text-zinc-900 font-semibold rounded-lg"
+            >
+              View Details
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+})}
             </div>
           )}
         </div>

@@ -20,13 +20,16 @@ import {
   Boxes,
   Truck,
   UserRoundPlus,
+  BanknoteArrowDown,
+  BadgeDollarSign,
+  Ad,
 } from "lucide-react";
 
 export const ADMIN_LINKS = [
   {
     group: "Overview",
     items: [
-      { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       {
         label: "Analytics",
         href: "/dashboard/admin/analytics",
@@ -54,13 +57,19 @@ export const ADMIN_LINKS = [
       { label: "Orders", href: "/dashboard/admin/orders", icon: ShoppingCart },
       { label: "Categories", href: "/dashboard/admin/categories", icon: Tags },
       { label: "Deals", href: "/dashboard/admin/deals", icon: Percent },
+      { label: "banner", href: "/dashboard/admin/banner", icon: Ad },
     ],
   },
   {
     group: "People",
     items: [
       { label: "Customers", href: "/dashboard/admin/customers", icon: Users },
-      { label: "Payouts", href: "/dashboard/admin/payouts", icon: Wallet },
+      { label: "Payouts", href: "/dashboard/admin/withdrawals", icon: Wallet },
+      {
+        label: "Profits",
+        href: "/dashboard/admin/profits",
+        icon: BadgeDollarSign,
+      },
     ],
   },
   {
@@ -72,6 +81,7 @@ export const ADMIN_LINKS = [
         href: "/dashboard/admin/moderation",
         icon: ShieldCheck,
       },
+
       { label: "Settings", href: "/dashboard/admin/settings", icon: Settings },
     ],
   },
@@ -81,7 +91,7 @@ export const VENDOR_LINKS = [
   {
     group: "Overview",
     items: [
-      { label: "Dashboard", href: "/dashboard/vendor", icon: LayoutDashboard },
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       {
         label: "Analytics",
         href: "/dashboard/vendor/analytics",
@@ -101,12 +111,17 @@ export const VENDOR_LINKS = [
       },
       { label: "Shipping", href: "/dashboard/vendor/shipping", icon: Truck },
       { label: "Reviews", href: "/dashboard/vendor/reviews", icon: Star },
+      {
+        label: "Discounts",
+        href: "/dashboard/vendor/discounts",
+        icon: Percent,
+      },
     ],
   },
   {
     group: "Business",
     items: [
-      { label: "Earnings", href: "/dashboard/vendor/earnings", icon: Wallet },
+      { label: "Earnings", href: "/dashboard/vendor/wallet", icon: Wallet },
       {
         label: "Messages",
         href: "/dashboard/vendor/messages",
