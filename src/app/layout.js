@@ -21,8 +21,8 @@ const geistMono = Geist_Mono({
 export const metadata = {
   // ১. Title Configuration
   title: {
-    default: `${process.env.NEXT_PUBLIC_APP_NAME || "Your Brand"} - Multi-Vendor E-Commerce Platform`,
-    template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "Your Brand"}`,
+    default: `${process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse"} - Multi-Vendor E-Commerce Platform`,
+    template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse"}`,
   },
 
   // ২. Meta Description & Keywords
@@ -55,11 +55,11 @@ export const metadata = {
     title: `${process.env.NEXT_PUBLIC_APP_NAME || "Your Brand"} - Best Multi-Vendor Online Marketplace`,
     description:
       "Shop from thousands of trusted vendors. Exclusive discounts, fast delivery, and secure payments.",
-    url: process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app",
     siteName: process.env.NEXT_PUBLIC_APP_NAME || "Your Brand",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com"}/og-image.jpg`, // Public folder-এ একটি ভালো ব্যানার রেখে দিবেন
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app"}/og-image.png`,
         width: 1200,
         height: 630,
         alt: `${process.env.NEXT_PUBLIC_APP_NAME} Banner`,
@@ -75,13 +75,13 @@ export const metadata = {
     title: process.env.NEXT_PUBLIC_APP_NAME || "Your Brand",
     description: "Shop quality products from top vendors at unbeatable prices.",
     images: [
-      `${process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com"}/og-image.jpg`,
+      `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app"}/og-image.png`,
     ],
   },
 
   // ৬. Canonical URL (Duplicate Content SEO Issue রোধ করতে)
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com",
+    canonical: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app",
   },
 };
 
