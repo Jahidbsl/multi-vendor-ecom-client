@@ -1,4 +1,4 @@
-import { serverFetch, serverMutation } from "@/lib/core/server";
+import { serverFetch, serverMutation, serverDelete } from "@/lib/core/server";
 
 export async function getAdminCategories() {
   try {
@@ -27,18 +27,10 @@ export async function addAdminCategory(categoryData) {
 }
 
 export async function deleteAdminCategory(id) {
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/categories/${id}`;
   try {
-    const res = await fetch(url, {
-      method: "DELETE",
-    });
-
-    const text = await res.text();
-    if (!res.headers.get("content-type")?.includes("application/json")) {
-      throw new Error(`Expected JSON but got:\n${text}`);
-    }
-
-    return JSON.parse(text);
+    // serverDelete helper use korle automatic token ebong error handling hoye jabe
+    const res = await serverDelete(`/api/admin/categories/${id}`);
+    return res;
   } catch (error) {
     console.error("Error deleting category:", error);
     return { success: false, message: error.message || "Failed to delete category" };

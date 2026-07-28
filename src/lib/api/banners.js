@@ -15,7 +15,6 @@ export async function getBanners(activeOnly = false) {
 
 export async function createBanner(payload) {
   try {
-    // যেহেতু serverMutation(path, data) নেয়, তাই এখানে "POST" লেখার প্রয়োজন নেই
     const res = await serverMutation("/api/banners", payload);
     return res;
   } catch (error) {

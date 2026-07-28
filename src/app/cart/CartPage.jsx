@@ -19,6 +19,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { createCheckoutSession } from "@/lib/actions/checkout";
+// Server actions import korun (jehetu e-gulo server theke cookie forward korbe)
+import { getCartItems, updateCartQuantity, removeCartItem, clearUserCart } from "@/lib/actions/cart";
 
 export default function CartPage() {
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
@@ -28,10 +30,6 @@ export default function CartPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [updatingItemId, setUpdatingItemId] = useState(null);
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/+$/, "") ||
-    "http://localhost:5000";
-
   const fetchCartItems = useCallback(async () => {
     if (!userId) {
       setIsLoading(false);
@@ -40,13 +38,12 @@ export default function CartPage() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${baseUrl}/api/cart/${userId}`);
-      const data = await res.json();
+      const res = await getCartItems(userId);
 
-      if (data?.success) {
-        setCartItems(data.data || []);
+      if (res?.success) {
+        setCartItems(res.data || []);
       } else {
-        toast.error(data?.message || "Failed to load cart items");
+        toast.error(res?.message || "Failed to load cart items");
       }
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -54,7 +51,7 @@ export default function CartPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [baseUrl, userId]);
+  }, [userId]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -74,21 +71,15 @@ export default function CartPage() {
         ),
       );
 
-      const res = await fetch(`${baseUrl}/api/cart/${cartId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: newQty }),
-      });
+      const res = await updateCartQuantity(cartId, newQty);
 
-      const data = await res.json();
-
-      if (!data?.success) {
+      if (!res?.success) {
         setCartItems((prevItems) =>
           prevItems.map((item) =>
             item._id === cartId ? { ...item, quantity: currentQty } : item,
           ),
         );
-        toast.error(data?.message || "Failed to update quantity");
+        toast.error(res?.message || "Failed to update quantity");
       }
     } catch (error) {
       console.error("Quantity update error:", error);
@@ -107,17 +98,13 @@ export default function CartPage() {
     try {
       setUpdatingItemId(cartId);
 
-      const res = await fetch(`${baseUrl}/api/cart/${cartId}`, {
-        method: "DELETE",
-      });
+      const res = await removeCartItem(cartId);
 
-      const data = await res.json();
-
-      if (data?.success) {
+      if (res?.success) {
         setCartItems((prev) => prev.filter((item) => item._id !== cartId));
         toast.success(`${itemTitle} removed from cart`);
       } else {
-        toast.error(data?.message || "Failed to remove item");
+        toast.error(res?.message || "Failed to remove item");
       }
     } catch (error) {
       console.error("Remove cart error:", error);
@@ -132,17 +119,13 @@ export default function CartPage() {
 
     try {
       setIsLoading(true);
-      const res = await fetch(`${baseUrl}/api/cart/user/${userId}`, {
-        method: "DELETE",
-      });
+      const res = await clearUserCart(userId);
 
-      const data = await res.json();
-
-      if (data?.success) {
+      if (res?.success) {
         setCartItems([]);
         toast.info("Cart cleared!");
       } else {
-        toast.error(data?.message || "Failed to clear cart.");
+        toast.error(res?.message || "Failed to clear cart.");
       }
     } catch (error) {
       console.error(error);
@@ -152,8 +135,6 @@ export default function CartPage() {
     }
   };
 
-  // Items that are still purchasable (in stock) — only these count toward
-  // totals and can be checked out.
   const outOfStockItems = cartItems.filter((item) => item.inStock === false);
   const hasOutOfStockItems = outOfStockItems.length > 0;
 
@@ -264,7 +245,6 @@ export default function CartPage() {
           )}
         </div>
 
-        {/* Banner warning about out-of-stock items in the cart */}
         {hasOutOfStockItems && (
           <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-2xl p-4">
             <AlertTriangle size={20} className="shrink-0 mt-0.5" />
@@ -353,7 +333,6 @@ export default function CartPage() {
                             </span>
                           )}
 
-                          {/* Stock status badge */}
                           {isOutOfStock ? (
                             <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded-md font-bold border border-red-500/20">
                               Out of Stock

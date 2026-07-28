@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { serverFetch } from "../core/server";
 
 /**
@@ -16,9 +17,17 @@ export async function getCartItems(userId) {
   }
 
   try {
+    const cookieStore = await headers();
+    const cookieHeader = cookieStore.get("cookie") || "";
+    const authorizationHeader = cookieStore.get("authorization") || "";
+
     const response = await serverFetch(`/api/cart/${userId}`, {
       method: "GET",
       cache: "no-store", 
+      headers: {
+        Cookie: cookieHeader,
+        ...(authorizationHeader && { Authorization: authorizationHeader }),
+      },
     });
 
     if (response?.success) {

@@ -1,10 +1,27 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getUserToken } from "../core/session"; // Apnar session ba token file path onujayi thik kore neben
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/+$/, "") ||
   "http://localhost:5000";
+
+// Helper for headers with Token
+const getAuthHeaders = async (hasBody = false) => {
+  const token = await getUserToken();
+  const headers = {};
+  
+  if (hasBody) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  return headers;
+};
 
 /**
  * Create a discount for a product.
@@ -12,9 +29,10 @@ const baseUrl =
  */
 export async function createDiscountAction(payload) {
   try {
+    const headers = await getAuthHeaders(true);
     const res = await fetch(`${baseUrl}/api/discounts`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 
@@ -38,9 +56,10 @@ export async function createDiscountAction(payload) {
  */
 export async function updateDiscountAction(id, payload) {
   try {
+    const headers = await getAuthHeaders(true);
     const res = await fetch(`${baseUrl}/api/discounts/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 
@@ -63,8 +82,10 @@ export async function updateDiscountAction(id, payload) {
  */
 export async function deleteDiscountAction(id) {
   try {
+    const headers = await getAuthHeaders(false);
     const res = await fetch(`${baseUrl}/api/discounts/${id}`, {
       method: "DELETE",
+      headers,
     });
 
     const data = await res.json();

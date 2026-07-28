@@ -25,6 +25,14 @@ import { authClient } from "@/lib/auth-client";
 import { getProducts } from "@/lib/api/produts";
 import { getVendorById } from "@/lib/api/vendors";
 import { getWalletByVendorId } from "@/lib/api/wallet";
+// Secure server actions import korun
+import {
+  getAdminProfitSummary,
+  getAdminVendors,
+  getAdminOrders,
+  getVendorOrders,
+  getUserOrders,
+} from "@/lib/actions/dashboard";
 
 function StatCard({ label, value, delta, positive, icon: Icon }) {
   return (
@@ -76,20 +84,17 @@ export default function DashboardContent() {
         let fetchedOrders = [];
 
         if (role === "admin") {
-          const profitRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/profit-summary`);
-          const profitData = await profitRes.json();
+          const profitData = await getAdminProfitSummary();
           if (profitData.success) {
             setAdminProfitData(profitData.data);
           }
 
-          const vendorsRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/vendors`);
-          const vendorsData = await vendorsRes.json();
+          const vendorsData = await getAdminVendors();
           if (vendorsData.success && vendorsData.pagination) {
             setActiveVendorsCount(vendorsData.pagination.totalVendors.toString());
           }
 
-          const ordersRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/orders?limit=10`);
-          const ordersData = await ordersRes.json();
+          const ordersData = await getAdminOrders(10);
           if (ordersData.success) {
             fetchedOrders = ordersData.data;
             setRecentOrders(fetchedOrders.slice(0, 5));
@@ -105,16 +110,14 @@ export default function DashboardContent() {
               setVendorWallet(walletData.data);
             }
 
-            const vendorOrdersRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/vendor/orders?vendorId=${docId}&limit=10`);
-            const vendorOrdersData = await vendorOrdersRes.json();
+            const vendorOrdersData = await getVendorOrders(docId, 10);
             if (vendorOrdersData.success) {
               fetchedOrders = vendorOrdersData.data;
               setRecentOrders(fetchedOrders.slice(0, 5));
             }
           }
         } else if (userId) {
-          const userOrdersRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/orders/${userId}?limit=5`);
-          const userOrdersData = await userOrdersRes.json();
+          const userOrdersData = await getUserOrders(userId, 5);
           if (userOrdersData.success) {
             fetchedOrders = userOrdersData.data;
             setRecentOrders(fetchedOrders);
@@ -129,7 +132,6 @@ export default function DashboardContent() {
           setListedProductsCount(productsList.length.toString());
         }
 
-       
         if (fetchedOrders.length > 0) {
           const groupedData = {};
           fetchedOrders.forEach((order) => {

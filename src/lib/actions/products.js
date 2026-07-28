@@ -1,25 +1,30 @@
 "use server";
 
 import { serverMutation, serverPatch } from "../core/server";
+import { serverDelete } from "../core/server"; // Apni chaile serverDelete helper-o use korte paren ba direct fetch-eo token dite paren
 import { revalidatePath } from "next/cache";
+import { getUserToken } from "../core/session"; // Token import
 
-
-// Create Product
+// Create Product (Automatically uses serverMutation -> Token secured!)
 export const createProductAction = async (productData) => {
   return serverMutation("/api/products", productData);
 };
 
-// Update Product
+// Update Product (Automatically uses serverPatch -> Token secured!)
 export const updateProductAction = async (id, productData) => {
   return serverPatch(`/api/products/${id}`, productData);
 };
 
-// Delete Product
+// Delete Product (Direct fetch, token added)
 export const deleteProductAction = async (id) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/+$/, "") || "http://localhost:5000";
   try {
+    const token = await getUserToken();
     const res = await fetch(`${baseUrl}/api/products/${id}`, {
       method: "DELETE",
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
     });
     return await res.json();
   } catch (error) {
@@ -28,7 +33,7 @@ export const deleteProductAction = async (id) => {
 };
 
 /**
- * Like / Unlike a product
+ * Like / Unlike a product (Automatically uses serverMutation -> Token secured!)
  */
 export async function toggleProductLike(productId, userId) {
   try {
@@ -45,7 +50,7 @@ export async function toggleProductLike(productId, userId) {
 }
 
 /**
- * Toggle Product Wishlist / Favorite
+ * Toggle Product Wishlist / Favorite (Automatically uses serverMutation -> Token secured!)
  */
 export async function toggleProductWishlist(productId, userId) {
   try {
@@ -62,7 +67,7 @@ export async function toggleProductWishlist(productId, userId) {
 }
 
 /**
- * Submit Product Report
+ * Submit Product Report (Automatically uses serverMutation -> Token secured!)
  */
 export async function submitProductReport(reportPayload) {
   try {
@@ -77,7 +82,7 @@ export async function submitProductReport(reportPayload) {
 }
 
 /**
- * Add Product to Cart
+ * Add Product to Cart (Automatically uses serverMutation -> Token secured!)
  */
 export async function addToCart(cartPayload) {
   try {
@@ -91,16 +96,18 @@ export async function addToCart(cartPayload) {
   }
 }
 
-
-
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// Admin Delete Product Action
+// Admin Delete Product Action (Direct fetch, token added)
 export async function deleteProductActionforAdmin(productId) {
   try {
+    const token = await getUserToken();
     const res = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
       method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
     });
 
     const data = await res.json();

@@ -1,4 +1,4 @@
-import { serverFetch, serverMutation } from "../core/server";
+import { serverFetch, serverMutation, serverDelete } from "../core/server";
 
 
 /**
@@ -30,7 +30,7 @@ export async function getAdminDiscounts() {
 
 export async function createProductDiscount(data) {
   try {
-    const res = await serverMutation("/api/discounts", data); // <-- এখানে data পাস করা হলো
+    const res = await serverMutation("/api/discounts", data);
     return res || { success: false, message: "No response from server" };
   } catch (error) {
     return { success: false, message: error.message || "Failed to create discount" };
@@ -39,7 +39,7 @@ export async function createProductDiscount(data) {
 
 export async function createCategoryDiscount(data) {
   try {
-    const res = await serverMutation("/api/admin/discounts/category", data); // <-- এখানেও data পাস করা হলো
+    const res = await serverMutation("/api/admin/discounts/category", data);
     return res || { success: false, message: "No response from server" };
   } catch (error) {
     return { success: false, message: error.message || "Failed to create category discount" };
@@ -48,11 +48,10 @@ export async function createCategoryDiscount(data) {
 
 export async function deleteDiscount(id) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/discounts/${id}`, {
-      method: "DELETE",
-    });
+    // serverDelete helper use korle automatic token ebong response handle hobe
+    const res = await serverDelete(`/api/discounts/${id}`);
     return res;
   } catch (error) {
-    return { success: false, message: "Failed to delete discount" };
+    return { success: false, message: error.message || "Failed to delete discount" };
   }
 }

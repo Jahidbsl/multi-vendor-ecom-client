@@ -1,15 +1,20 @@
 // lib/actions/payment.js
 "use server";
 
+import { getUserToken } from "../core/session"; // Apnar session path onujayi thik kore neben
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export async function verifyPayment(sessionId) {
   try {
+    const token = await getUserToken();
+
     const res = await fetch(`${BASE_URL}/api/payment-success`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify({ sessionId }),
       cache: "no-store",

@@ -1,12 +1,9 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+import { serverFetch } from "../core/server";
 
 export async function getProductReviews(productId) {
   try {
-    const res = await fetch(`${BASE_URL}/api/reviewRoutes/product/${productId}`, {
-      cache: "no-store",
-    });
-    const data = await res.json();
-    return data;
+    const res = await serverFetch(`/api/reviewRoutes/product/${productId}`);
+    return res || { success: false, data: [] };
   } catch (error) {
     console.error("Error fetching product reviews:", error);
     return { success: false, data: [] };

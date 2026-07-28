@@ -1,13 +1,52 @@
 "use server";
 
+import { headers } from "next/headers";
+import { getUserToken } from "./session";
+
 const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
+
+// Helper to construct headers with Bearer Token and Cookies
+const getHeaders = async (hasBody = false) => {
+  let token = null;
+  try {
+    token = await getUserToken();
+  } catch (e) {
+    console.error("Error getting user token:", e);
+  }
+
+  // Next.js headers theke browser er cookie gulo anchi
+  const cookieStore = await headers();
+  const cookieHeader = cookieStore.get("cookie") || "";
+
+  const reqHeaders = {};
+  
+  if (hasBody) {
+    reqHeaders["Content-Type"] = "application/json";
+  }
+
+  // Cookie forward korchi jate backend-er verifyToken middleware session peye jay
+  if (cookieHeader) {
+    reqHeaders["Cookie"] = cookieHeader;
+  }
+
+  // Bearer token thakle tao add korchi
+  if (token) {
+    reqHeaders["Authorization"] = `Bearer ${token}`;
+  }
+
+  return reqHeaders;
+};
 
 export const serverFetch = async (path) => {
   try {
-    const res = await fetch(`${baseurl}${path}`);
+    const headers = await getHeaders(false);
+    const res = await fetch(`${baseurl}${path}`, {
+      headers,
+      cache: "no-store",
+    });
 
     if (!res.ok) {
-      console.error(`Fetch failed with status: ${res.status}`);
+      console.error(`Fetch failed with status: ${res.status} for path: ${path}`);
       return null;
     }
 
@@ -19,22 +58,16 @@ export const serverFetch = async (path) => {
 };
 
 export const serverMutation = async (path, data) => {
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${path}`;
+  const url = `${baseurl}${path}`;
+  const headers = await getHeaders(true);
 
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(data),
   });
 
   const text = await res.text();
-
-  console.log("URL:", url);
-  console.log("Status:", res.status);
-  console.log("Content-Type:", res.headers.get("content-type"));
-  console.log("Body:", text);
 
   if (!res.headers.get("content-type")?.includes("application/json")) {
     throw new Error(`Expected JSON but got:\n${text}`);
@@ -43,24 +76,17 @@ export const serverMutation = async (path, data) => {
   return JSON.parse(text);
 };
 
-// Server Patch Helper
 export const serverPatch = async (path, data) => {
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${path}`;
+  const url = `${baseurl}${path}`;
+  const headers = await getHeaders(true);
 
   const res = await fetch(url, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(data),
   });
 
   const text = await res.text();
-
-  console.log("URL:", url);
-  console.log("Status:", res.status);
-  console.log("Content-Type:", res.headers.get("content-type"));
-  console.log("Body:", text);
 
   if (!res.headers.get("content-type")?.includes("application/json")) {
     throw new Error(`Expected JSON but got:\n${text}`);
@@ -69,27 +95,18 @@ export const serverPatch = async (path, data) => {
   return JSON.parse(text);
 };
 
-// Server Delete Helper
 export const serverDelete = async (path, data) => {
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${path}`;
+  const url = `${baseurl}${path}`;
+  const headers = await getHeaders(!!data);
 
   const res = await fetch(url, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    // Optional: Only attach body if data is provided
+    headers,
     ...(data && { body: JSON.stringify(data) }),
   });
 
   const text = await res.text();
 
-  console.log("URL:", url);
-  console.log("Status:", res.status);
-  console.log("Content-Type:", res.headers.get("content-type"));
-  console.log("Body:", text);
-
-  // Handle 204 No Content (DELETE requests often return status 204 without body)
   if (res.status === 204 || !text) {
     return { success: true };
   }

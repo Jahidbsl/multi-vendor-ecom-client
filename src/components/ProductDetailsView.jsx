@@ -1,7 +1,7 @@
 // components/ProductDetailsView.jsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -52,6 +52,13 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
   const { data: session } = authClient.useSession();
   const userId = userIdProp || session?.user?.id;
 
+  // Hydration Mismatch Fix: mounted state
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Combine Product Images & Variant Images into a single unique array for the slider
   const rawImages = [
     product.image,
@@ -77,11 +84,10 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
     setActiveImage(allImages[prevIndex]);
   };
 
-  // Variant States - Initially Empty (Normally ektao selected thakbe na)
+  // Variant States - Initially Empty
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
 
-  // Handle Variant Selection instantly without any loading delay
   const handleVariantSelect = (size, color) => {
     const newSize = size !== undefined ? size : selectedSize;
     const newColor = color !== undefined ? color : selectedColor;
@@ -89,7 +95,6 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
     if (size !== undefined) setSelectedSize(size);
     if (color !== undefined) setSelectedColor(color);
 
-    // Find matching variant image instantly
     const matchedVariant = product.variants?.find(
       (v) =>
         (!newSize || v.size === newSize) &&
@@ -150,7 +155,7 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
     }
   };
 
-// ---- Wishlist / Favorite -------------------------------------------
+  // ---- Wishlist / Favorite -------------------------------------------
   const handleToggleFavorite = async () => {
     if (!userId) {
       toast.error("Please login to add to wishlist!");
@@ -169,7 +174,6 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
         toast.success(
           nextFavoriteState ? "Added to Wishlist!" : "Removed from Wishlist!",
         );
-        
         window.dispatchEvent(new Event("wishlistUpdated"));
       } else {
         setIsFavorite(!nextFavoriteState);
@@ -271,6 +275,13 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
     }
   };
 
+  // Prevent server/client HTML mismatch by rendering fallback or safe view until mounted
+  if (!mounted) {
+    return (
+      <div className="w-full bg-background rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-default-200 dark:border-white/10 shadow-xl min-h-[400px]" />
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -368,7 +379,6 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
               className="object-cover"
             />
 
-            {/* Slider Controls */}
             {allImages.length > 1 && (
               <>
                 <button
@@ -387,7 +397,6 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
             )}
           </motion.div>
 
-          {/* Thumbnails Gallery */}
           {allImages.length > 1 && (
             <div className="flex items-center gap-2 overflow-x-auto pb-2 w-full max-w-full">
               {allImages.map((img, index) => (
@@ -456,7 +465,6 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
               </span>
             </div>
 
-            {/* DISCOUNT DEADLINE SECTION */}
             {product.hasDiscount && product.endDate && (
               <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl w-fit border border-amber-500/20">
                 <Clock size={14} />
@@ -471,10 +479,8 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
             {product.description || "No description provided."}
           </p>
 
-          {/* VARIANTS SELECTION (SIZE & COLOR) */}
           {product.variants && product.variants.length > 0 && (
             <div className="space-y-3 pt-2 border-t border-default-200 dark:border-white/5">
-              {/* Sizes */}
               {product.variants.some((v) => v.size) && (
                 <div>
                   <label className="text-xs font-bold text-default-500 uppercase tracking-wider mb-1.5 block">
@@ -503,7 +509,6 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
                 </div>
               )}
 
-              {/* Colors */}
               {product.variants.some((v) => v.color) && (
                 <div>
                   <label className="text-xs font-bold text-default-500 uppercase tracking-wider mb-1.5 block">
@@ -618,15 +623,16 @@ export default function ProductDetailsView({ product, userId: userIdProp }) {
                             </Select.Trigger>
                             <Select.Popover>
                               <ListBox>
-                                {REPORT_REASONS.map((reason) => (
-                                  <ListBox.Item
-                                    key={reason.value}
-                                    id={reason.value}
-                                    textValue={reason.label}
-                                  >
-                                    <Label>{reason.label}</Label>
-                                  </ListBox.Item>
-                                ))}
+                                {REPORT_REASONS.comap?.((reason) => null) ||
+                                  REPORT_REASONS.map((reason) => (
+                                    <ListBox.Item
+                                      key={reason.value}
+                                      id={reason.value}
+                                      textValue={reason.label}
+                                    >
+                                      <Label>{reason.label}</Label>
+                                    </ListBox.Item>
+                                  ))}
                               </ListBox>
                             </Select.Popover>
                           </Select>

@@ -1,4 +1,4 @@
-import { serverFetch } from "../core/server";
+import { serverFetch, serverPatch } from "../core/server";
 
 /**
  * Fetch vendor orders with pagination & filters
@@ -16,14 +16,9 @@ export async function getCustomerOrders({ userId, page = 1, limit = 5 }) {
   return serverFetch(`/api/user/orders/${userId}?${query}`);
 }
 
-
-
 export async function getAdminOrders({ search = "", status = "all", page = 1, limit = 10 } = {}) {
   try {
-    const res = await serverFetch(`/api/admin/orders?search=${encodeURIComponent(search)}&status=${status}&page=${page}&limit=${limit}`, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const res = await serverFetch(`/api/admin/orders?search=${encodeURIComponent(search)}&status=${status}&page=${page}&limit=${limit}`);
     return res;
   } catch (error) {
     console.error("Error fetching admin orders:", error);
@@ -33,14 +28,11 @@ export async function getAdminOrders({ search = "", status = "all", page = 1, li
 
 export async function updateAdminOrderStatus(orderId, status) {
   try {
-    const res = await serverFetch(`/api/admin/orders/${orderId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
+    // serverPatch use korle automatic token ebong PATCH method handle hobe
+    const res = await serverPatch(`/api/admin/orders/${orderId}`, { status });
     return res;
   } catch (error) {
     console.error("Error updating order status:", error);
-    return { success: false, message: "Failed to update status" };
+    return { success: false, message: error.message || "Failed to update status" };
   }
 }

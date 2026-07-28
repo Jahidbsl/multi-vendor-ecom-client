@@ -198,7 +198,7 @@ export function Navbar() {
             >
               Track order
             </Link>
-            <Link href="/help" className="hover:text-white transition-colors">
+            <Link href="/helps" className="hover:text-white transition-colors">
               Help
             </Link>
           </div>

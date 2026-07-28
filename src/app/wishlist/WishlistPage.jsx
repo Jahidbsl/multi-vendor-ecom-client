@@ -1,8 +1,11 @@
 "use client"
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Card } from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
+// Server actions import korun
+import { getUserWishlist } from "@/lib/actions/wishlist";
+import { addToCart } from "@/lib/actions/cart"; // jodi thake, nahole nicher server action dekhe nin
 
 export default function WishlistPage() {
   const { data: session, isPending: sessionLoading } = authClient.useSession();
@@ -13,18 +16,18 @@ export default function WishlistPage() {
   const [error, setError] = useState(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const fetchWishlist = async () => {
+  const fetchWishlist = useCallback(async () => {
     if (!userId) return;
 
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${userId}/wishlist`);
-      const data = await res.json();
+      // Direct fetch er bodole server action use kora hocche jate cookie/token forward hoy
+      const res = await getUserWishlist(userId);
       
-      if (data.success) {
-        setWishlistProducts(data.data);
+      if (res.success) {
+        setWishlistProducts(res.data);
       } else {
-        setError(data.message || "Failed to load wishlist items.");
+        setError(res.message || "Failed to load wishlist items.");
       }
     } catch (err) {
       setError("Failed to load wishlist items.");
@@ -32,7 +35,7 @@ export default function WishlistPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     if (userId) {
@@ -40,7 +43,7 @@ export default function WishlistPage() {
     } else if (!sessionLoading) {
       setLoading(false);
     }
-  }, [userId, sessionLoading]);
+  }, [userId, sessionLoading, fetchWishlist]);
 
   const handleRemoveFromWishlist = async (productId) => {
     try {
@@ -67,11 +70,13 @@ export default function WishlistPage() {
 
     try {
       setIsAddingToCart(true);
+      // Ekhane o dorkar hole server action use korte paren, ba fetch-er khetre credentials include korte paren
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/cart`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Cookie forward korar jonno eta add korte paren
         body: JSON.stringify({
           userId,
           productId: product._id,
@@ -181,7 +186,7 @@ export default function WishlistPage() {
                 </div>
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-2xl font-extrabold text-white">
-                    ${product.price.toFixed(2)}
+                    ${product.price?.toFixed(2)}
                   </span>
                   {product.stock > 0 ? (
                     <span className="text-xs text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1 rounded">In Stock</span>

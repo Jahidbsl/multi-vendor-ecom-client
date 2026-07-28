@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
+// Age toiri kora dashboard server action import korun
+import { getAdminProfitSummary } from "@/lib/actions/dashboard";
 
 export default function AdminProfitDashboard() {
   const [profitData, setProfitData] = useState({ totalProfit: 0, totalSales: 0, totalOrders: 0 });
@@ -8,10 +10,10 @@ export default function AdminProfitDashboard() {
   useEffect(() => {
     async function fetchAdminProfit() {
       try {
-        const res = await fetch("http://localhost:5000/api/admin/profit-summary");
-        const data = await res.json();
-        if (data.success) {
-          setProfitData(data.data);
+        // Direct fetch er bodole server action use kora hocche jate cookie/token forward hoy
+        const res = await getAdminProfitSummary();
+        if (res && res.success) {
+          setProfitData(res.data);
         }
       } catch (err) {
         console.error("Error fetching profit data:", err);
@@ -23,7 +25,7 @@ export default function AdminProfitDashboard() {
     fetchAdminProfit();
   }, []);
 
-  if (loading) return <div className="p-6">Loading profit analytics...</div>;
+  if (loading) return <div className="p-6 text-white">Loading profit analytics...</div>;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -33,19 +35,19 @@ export default function AdminProfitDashboard() {
         {/* টোটাল প্রফিট কার্ড */}
         <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white p-6 rounded-2xl shadow-lg">
           <h3 className="text-sm uppercase tracking-wider font-medium text-purple-200">Total Admin Profit</h3>
-          <p className="text-3xl font-extrabold mt-2">${profitData.totalProfit.toFixed(2)}</p>
+          <p className="text-3xl font-extrabold mt-2">${profitData.totalProfit?.toFixed(2) || "0.00"}</p>
         </div>
 
         {/* টোটাল সেলস ভলিউম */}
         <div className="bg-gradient-to-br from-blue-600 to-cyan-700 text-white p-6 rounded-2xl shadow-lg">
           <h3 className="text-sm uppercase tracking-wider font-medium text-blue-200">Total Sales Volume</h3>
-          <p className="text-3xl font-extrabold mt-2">${profitData.totalSales.toFixed(2)}</p>
+          <p className="text-3xl font-extrabold mt-2">${profitData.totalSales?.toFixed(2) || "0.00"}</p>
         </div>
 
         {/* কমপ্লিটেড অর্ডার */}
         <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-6 rounded-2xl shadow-lg">
           <h3 className="text-sm uppercase tracking-wider font-medium text-emerald-200">Successful Orders</h3>
-          <p className="text-3xl font-extrabold mt-2">{profitData.totalOrders}</p>
+          <p className="text-3xl font-extrabold mt-2">{profitData.totalOrders || 0}</p>
         </div>
       </div>
     </div>
