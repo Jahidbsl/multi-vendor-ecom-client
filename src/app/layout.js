@@ -59,11 +59,11 @@ export const metadata = {
     title: `${process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse"} - Best Multi-Vendor Online Marketplace`,
     description:
       "Shop from thousands of trusted vendors. Exclusive discounts, fast delivery, and secure payments.",
-    url: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-server.onrender.com",
     siteName: process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app"}/og-image.png`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-server.onrender.com"}/og-image.png`,
         width: 1200,
         height: 630,
         alt: `${process.env.NEXT_PUBLIC_APP_NAME} Banner`,
@@ -79,13 +79,13 @@ export const metadata = {
     title: process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse",
     description: "Shop quality products from top vendors at unbeatable prices.",
     images: [
-      `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app"}/og-image.png`,
+      `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-server.onrender.com"}/og-image.png`,
     ],
   },
 
   // 6. Canonical URL
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app",
+    canonical: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-server.onrender.com",
   },
 };
 
