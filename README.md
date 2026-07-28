@@ -1,3 +1,11 @@
+# ShopVerse - Multi-Vendor E-Commerce Platform
+
+A feature-rich, modern multi-vendor e-commerce platform built with Next.js App Router, designed to provide seamless shopping experiences, multi-vendor operations, and robust administrative control.
+
+🌐 **Live Demo:** [https://multi-vendor-ecom-client.vercel.app](https://multi-vendor-ecom-client.vercel.app)
+
+---
+
 ## 🛠️ Tech Stack
 
 This project is built using modern web development technologies:
@@ -6,8 +14,21 @@ This project is built using modern web development technologies:
 - **UI Component Library:** [HeroUI](https://www.heroui.com/)
 - **Icons:** [@gravity-ui/icons](https://gravity-ui.com/icons) & [React Icons](https://react-icons.github.io/react-icons/)
 - **Notifications:** [React Toastify](https://fkhadra.github.io/react-toastify/)
--** Lottefile**
-- **Authentication:** [Better Auth](https://www.better-auth.com/)
+- **Animations:** LottieFiles
+- **Authentication:** [Better Auth](https://www.better-auth.com/) (with custom Admin plugin integration)
+- **Payments:** Stripe Payment Gateway
+
+---
+
+## ✨ Key Features
+
+- **Multi-Role Dashboards:** Fully functional, dedicated dashboards for **Admins** and **Vendors** to oversee business metrics, manage products, and handle orders.
+- **Dynamic Homepage Customization:** Admin-controlled dynamic discount banners, feature cards, top-selling products, and top vendor showcases.
+- **Advanced Financial System:** Comprehensive profit earning calculations for both admins and vendors, complete with secure withdrawal requests and management.
+- **Optimized Performance:** Server-side pagination for large product catalogs to ensure blazing-fast loading speeds.
+- **Secure Authentication:** Credentials-based secure login alongside **Google Social Login** powered by Better Auth.
+- **Stripe Checkout:** Seamless and secure payment processing for customers.
+- **SEO & Discoverability:** Fully optimized metadata, robots configuration, and automated dynamic sitemap (`/sitemap.xml`) integrated with **Google Search Console**.
 
 ---
 
@@ -30,11 +51,11 @@ When registering for an account, your password must meet the following validatio
 | `Password123` | ✅ | Meets all criteria |
 | `MySecurePass2026!` | ✅ | Meets all criteria |
 
+---
 
--- create admin with better auth Plugin
+## 🧪 Admin Test Credentials
 
--- use stripe for payment 
-stripe Secret key= 
+To explore the admin features and dashboard management experience instantly, use the following credentials:
 
-Publishable key = 
-
+- **Email:** `admin@gmail.com`
+- **Password:** `Password@1`
