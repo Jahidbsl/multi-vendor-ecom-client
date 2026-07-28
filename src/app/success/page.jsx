@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { stripe } from '@/lib/stripe';
 import { verifyPayment } from '@/lib/actions/payment';
+import { clearUserCart } from '@/lib/actions/cart'; // Server action import kora holo
 import { CheckCircle2, ArrowRight, ShoppingBag } from 'lucide-react';
 
 export default async function SuccessPage({ searchParams }) {
@@ -37,11 +38,8 @@ export default async function SuccessPage({ searchParams }) {
 
   if (userId) {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000';
-      await fetch(`${baseUrl}/api/cart/user/${userId}`, {
-        method: 'DELETE',
-        cache: 'no-store',
-      });
+      // Server action use koray r URL mismatch ba token error hobe na
+      await clearUserCart(userId);
     } catch (err) {
       console.error('Failed to clear cart:', err);
     }
