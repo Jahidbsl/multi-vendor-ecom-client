@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 //setup for SEO and metadata
 
 export const metadata = {
-  // ১. Title Configuration
+  // 1. Title Configuration
   title: {
     default: `${process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse"} - Multi-Vendor E-Commerce Platform`,
     template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse"}`,
@@ -29,7 +29,7 @@ export const metadata = {
     google: "4M-Xall_f3tTcfGz_i3lqiihhHBks8szXEuoFWA7eZA",
   },
 
-  // ২. Meta Description & Keywords
+  // 2. Meta Description & Keywords
   description:
     "Discover a seamless multi-vendor shopping experience with top brands, best deals, and secure checkout. Shop trending fashion, electronics, and daily essentials.",
   keywords: [
@@ -41,7 +41,7 @@ export const metadata = {
     "trending products",
   ],
 
-  // ৩. Indexing Controls (Google Search Console-এর জন্য অত্যন্ত গুরুত্বপূর্ণ)
+  // 3. Indexing Controls
   robots: {
     index: true,
     follow: true,
@@ -54,13 +54,13 @@ export const metadata = {
     },
   },
 
-  // ৪. OpenGraph Meta (Social Media Sharing)
+  // 4. OpenGraph Meta (Social Media Sharing)
   openGraph: {
-    title: `${process.env.NEXT_PUBLIC_APP_NAME || "Your Brand"} - Best Multi-Vendor Online Marketplace`,
+    title: `${process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse"} - Best Multi-Vendor Online Marketplace`,
     description:
       "Shop from thousands of trusted vendors. Exclusive discounts, fast delivery, and secure payments.",
     url: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app",
-    siteName: process.env.NEXT_PUBLIC_APP_NAME || "Your Brand",
+    siteName: process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse",
     images: [
       {
         url: `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app"}/og-image.png`,
@@ -73,17 +73,17 @@ export const metadata = {
     type: "website",
   },
 
-  // ৫. Twitter Card Meta
+  // 5. Twitter Card Meta
   twitter: {
     card: "summary_large_image",
-    title: process.env.NEXT_PUBLIC_APP_NAME || "Your Brand",
+    title: process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse",
     description: "Shop quality products from top vendors at unbeatable prices.",
     images: [
       `${process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app"}/og-image.png`,
     ],
   },
 
-  // ৬. Canonical URL (Duplicate Content SEO Issue রোধ করতে)
+  // 6. Canonical URL
   alternates: {
     canonical: process.env.NEXT_PUBLIC_APP_URL || "https://multi-vendor-ecom-client.vercel.app",
   },
