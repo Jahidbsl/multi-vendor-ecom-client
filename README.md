@@ -15,7 +15,7 @@ This project is built using modern web development technologies:
 - **Icons:** [@gravity-ui/icons](https://gravity-ui.com/icons) & [React Icons](https://react-icons.github.io/react-icons/)
 - **Notifications:** [React Toastify](https://fkhadra.github.io/react-toastify/)
 - **Animations:** LottieFiles
-- **Authentication:** [Better Auth](https://www.better-auth.com/) (with custom Admin plugin integration)
+- **Authentication:** [Better Auth](https://www.better-auth.com/) (with custom Admin plugin integration & Session Token Verification)
 - **Payments:** Stripe Payment Gateway
 
 ---
@@ -26,7 +26,7 @@ This project is built using modern web development technologies:
 - **Dynamic Homepage Customization:** Admin-controlled dynamic discount banners, feature cards, top-selling products, and top vendor showcases.
 - **Advanced Financial System:** Comprehensive profit earning calculations for both admins and vendors, complete with secure withdrawal requests and management.
 - **Optimized Performance:** Server-side pagination for large product catalogs to ensure blazing-fast loading speeds.
-- **Secure Authentication:** Credentials-based secure login alongside **Google Social Login** powered by Better Auth.
+- **Secure Authentication & Session Security:** Credentials-based secure login alongside **Google Social Login** powered by Better Auth, featuring robust session token verification for route protection and role-based access control.
 - **Stripe Checkout:** Seamless and secure payment processing for customers.
 - **SEO & Discoverability:** Fully optimized metadata, robots configuration, and automated dynamic sitemap (`/sitemap.xml`) integrated with **Google Search Console**.
 
