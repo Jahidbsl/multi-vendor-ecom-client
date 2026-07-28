@@ -25,6 +25,10 @@ export const metadata = {
     template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME || "ShopVerse"}`,
   },
 
+  verification: {
+    google: "4M-Xall_f3tTcfGz_i3lqiihhHBks8szXEuoFWA7eZA",
+  },
+
   // ২. Meta Description & Keywords
   description:
     "Discover a seamless multi-vendor shopping experience with top brands, best deals, and secure checkout. Shop trending fashion, electronics, and daily essentials.",
